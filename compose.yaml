@@ -1,0 +1,6 @@
+﻿services:
+  proiect-licenta:
+    image: proiect-licenta
+    build:
+      context: .
+      dockerfile: proiect-licenta/Dockerfile

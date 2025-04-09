@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "proiect-licenta", "proiect-licenta\proiect-licenta.csproj", "{81D7B3E3-384D-4768-9A59-27C0D6088523}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F04CAE37-6515-4105-8213-67E8CC99B8FF}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81D7B3E3-384D-4768-9A59-27C0D6088523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81D7B3E3-384D-4768-9A59-27C0D6088523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81D7B3E3-384D-4768-9A59-27C0D6088523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81D7B3E3-384D-4768-9A59-27C0D6088523}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
