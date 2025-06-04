@@ -2,6 +2,7 @@
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace proiect_licenta.Services
 {
@@ -10,11 +11,12 @@ namespace proiect_licenta.Services
         // add  access checking
         private readonly ApplicationDbContext _context;
         //private readonly PrivilegeChecker _privilegeChecker;
-        //private readonly ClaimsPrincipal _user;
+        private readonly ClaimsPrincipal _user;
 
         public AppService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _user = httpContextAccessor.HttpContext!.User;
         }
 
         public async Task<IEnumerable<App>> GetAllApps()
@@ -29,6 +31,13 @@ namespace proiect_licenta.Services
             var app = await _context.Apps.FindAsync(id);
             if (app == null) { throw new Exception(); }
             return app;
+        }
+
+        public async Task<Boolean> AppOwned(int id)
+        {
+            var userId = _user.FindFirstValue(ClaimTypes.NameIdentifier);
+            var inLibrary = _context.Installs.Any(inst => inst.UserId == userId && inst.AppId == id);
+            return inLibrary;
         }
 
         public async Task<App> CreateApp(App app)

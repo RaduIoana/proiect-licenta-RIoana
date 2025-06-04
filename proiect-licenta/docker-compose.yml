@@ -1,0 +1,31 @@
+﻿version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: alexandra
+      MYSQL_DATABASE: proilic
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: proiect-licenta
+    ports:
+      - "5151:8080"  # host:container
+    depends_on:
+      - mysql
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    entrypoint: >
+      sh -c "sleep 10 && dotnet proiect-licenta.dll"
+
+volumes:
+  mysql_data:

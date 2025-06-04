@@ -13,15 +13,12 @@ namespace proiect_licenta.Controllers
     {
         private readonly CardService _cardService;
 
-        // GET: api/MyModel
         [HttpGet("get_all_cards")]
         public async Task<ActionResult<IEnumerable<Card>>> GetAllCards()
         {
-            // Simulate async database access
             return Ok(await _cardService.GetAllCards());
         }
 
-        // GET: api/MyModel/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Card>> GetById(int id)
         {

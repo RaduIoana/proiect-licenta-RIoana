@@ -9,7 +9,7 @@ namespace proiect_licenta.Models
         public string Name { get; set; }
         public string Description { get; set; }
         //[Required] public int DevId { get; set; }
-        public int Price { get; set; }
+        public double Price { get; set; }
         public DateTime LaunchDate { get; set; }
         public float Rating { get; set; }
         public int Discount { get; set; }
