@@ -1,6 +1,9 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Nethereum.Web3;
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
@@ -8,6 +11,17 @@ using proiect_licenta.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+if (environment == "Development")
+{
+    DotNetEnv.Env.Load(); // Only loads .env locally
+}
+//DotNetEnv.Env.Load();
+var key = Environment.GetEnvironmentVariable("JWT__KEY");
+var issuer = Environment.GetEnvironmentVariable("JWT__ISSUER");
+var audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE");
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
@@ -40,14 +54,45 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-/*
+
+var signingKey = new SymmetricSecurityKey(Convert.FromBase64String(key));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(jwtOptions =>
     {
-        jwtOptions.Authority = "https://{--your-authority--}";
-        jwtOptions.Audience = "https://{--your-audience--}";
+        jwtOptions.Authority = issuer;
+        jwtOptions.Audience = audience;
+        jwtOptions.TokenValidationParameters = new TokenValidationParameters{
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            IssuerSigningKey = signingKey //placeholder?
+        };
     });
-*/
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddIdentity<MyUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders().AddApiEndpoints();
+
+builder.Services.AddScoped<AppService>();
+builder.Services.AddScoped<AppstoreService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<InstallService>();
+builder.Services.AddScoped<LicenseGenerationService>();
+builder.Services.AddScoped<MetaAuthService>();
+builder.Services.AddScoped<PayRecordService>();
+builder.Services.AddScoped<RefundService>();
+builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<UserAccService>();
+builder.Services.AddScoped<VoucherService>();
+
 var app = builder.Build();
 
 
@@ -62,7 +107,7 @@ app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthorization();
 
 app.MapControllers();
 

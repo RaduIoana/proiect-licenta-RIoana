@@ -9,9 +9,14 @@ namespace proiect_licenta.Controllers
     [Route("api/PaymentRecords")]
     [ApiController]
     [Authorize]
-    public class PayRecordController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class PayRecordController : ControllerBase
     {
         private readonly PayRecordService _paymentRecordService;
+
+        public PayRecordController(PayRecordService paymentRecordService)
+        {
+            _paymentRecordService = paymentRecordService;
+        }
 
         // GET: api/MyModel
         [HttpGet("get_all_payRecords")]

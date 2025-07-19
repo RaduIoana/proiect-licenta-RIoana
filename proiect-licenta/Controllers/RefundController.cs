@@ -9,9 +9,14 @@ namespace proiect_licenta.Controllers
     [Route("api/refunds")]
     [ApiController]
     [Authorize]
-    public class RefundController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class RefundController : ControllerBase
     {
         private readonly RefundService _refundService;
+
+        public RefundController(RefundService refundService)
+        {
+            _refundService = refundService;
+        }
 
         // GET: api/MyModel
         [HttpGet("get_all_refunds")]

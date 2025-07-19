@@ -6,8 +6,9 @@ namespace proiect_licenta.Models
     public class MyUser : IdentityUser
     {
         public bool Subscription {get; set;} = false;
-        public int DaysLeft {  get; set; }
-        public double AccountBalance { get; set; }
+        public string WalletAddress { get; set; } = "";
+        public int DaysLeft { get; set; } = 0;
+        public double AccountBalance { get; set; } = 0.0;
 
         [JsonIgnore] public virtual ICollection<UserCard> UserCards { get; set; }
         [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; }

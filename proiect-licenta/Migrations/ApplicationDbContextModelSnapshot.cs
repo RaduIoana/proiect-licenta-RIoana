@@ -22,6 +22,138 @@ namespace proiect_licenta.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("proiect_licenta.Models.App", b =>
                 {
                     b.Property<int>("Id")
@@ -44,8 +176,8 @@ namespace proiect_licenta.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<double>("Price")
+                        .HasColumnType("double");
 
                     b.Property<float>("Rating")
                         .HasColumnType("float");
@@ -55,7 +187,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Apps");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.AppCategory", b =>
+            modelBuilder.Entity("proiect_licenta.Models.AppCategory", b =>
                 {
                     b.Property<int>("AppId")
                         .HasColumnType("int");
@@ -70,7 +202,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("AppCategories");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Card", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,7 +226,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Category", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,7 +243,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Install", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Install", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
@@ -132,7 +264,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Installs");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.MyUser", b =>
+            modelBuilder.Entity("proiect_licenta.Models.MyUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
@@ -140,11 +272,19 @@ namespace proiect_licenta.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<double>("AccountBalance")
+                        .HasColumnType("double");
+
                     b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("DaysLeft")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
@@ -156,10 +296,12 @@ namespace proiect_licenta.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("NormalizedEmail")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("NormalizedUserName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
@@ -173,18 +315,33 @@ namespace proiect_licenta.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("Subscription")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("WalletAddresses")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.ToTable("MyUsers");
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.PaymentRecord", b =>
+            modelBuilder.Entity("proiect_licenta.Models.PaymentRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -214,7 +371,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("PaymentRecords");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.RefundRequest", b =>
+            modelBuilder.Entity("proiect_licenta.Models.RefundRequest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -248,7 +405,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("RefundRequests");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Report", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Report", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
@@ -275,7 +432,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Reports");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Review", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Review", b =>
                 {
                     b.Property<int>("AppId")
                         .HasColumnType("int");
@@ -304,7 +461,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.UserCard", b =>
+            modelBuilder.Entity("proiect_licenta.Models.UserCard", b =>
                 {
                     b.Property<int>("CardId")
                         .HasColumnType("int");
@@ -319,7 +476,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("UserCards");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.UserVoucher", b =>
+            modelBuilder.Entity("proiect_licenta.Models.UserVoucher", b =>
                 {
                     b.Property<int>("VoucherId")
                         .HasColumnType("int");
@@ -334,7 +491,7 @@ namespace proiect_licenta.Migrations
                     b.ToTable("UserVouchers");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Voucher", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Voucher", b =>
                 {
                     b.Property<int>("Key")
                         .ValueGeneratedOnAdd()
@@ -353,7 +510,58 @@ namespace proiect_licenta.Migrations
                     b.ToTable("Vouchers");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.AppCategory", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("proiect_licenta.Models.MyUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("proiect_licenta.Models.MyUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("proiect_licenta.Models.MyUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("proiect_licenta.Models.MyUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("proiect_licenta.Models.AppCategory", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
                         .WithMany("AppCategories")
@@ -361,7 +569,7 @@ namespace proiect_licenta.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.Category", "Category")
+                    b.HasOne("proiect_licenta.Models.Category", "Category")
                         .WithMany("AppCategories")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -372,7 +580,7 @@ namespace proiect_licenta.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Install", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Install", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
                         .WithMany("Installs")
@@ -380,13 +588,13 @@ namespace proiect_licenta.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.PaymentRecord", "PaymentRecord")
+                    b.HasOne("proiect_licenta.Models.PaymentRecord", "PaymentRecord")
                         .WithOne("Install")
-                        .HasForeignKey("proiect_licenta.Server.Models.Install", "PaymentId")
+                        .HasForeignKey("proiect_licenta.Models.Install", "PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("Installs")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -399,7 +607,7 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.PaymentRecord", b =>
+            modelBuilder.Entity("proiect_licenta.Models.PaymentRecord", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
                         .WithMany("PaymentRecords")
@@ -407,7 +615,7 @@ namespace proiect_licenta.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("PaymentRecords")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -418,15 +626,15 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.RefundRequest", b =>
+            modelBuilder.Entity("proiect_licenta.Models.RefundRequest", b =>
                 {
-                    b.HasOne("proiect_licenta.Server.Models.PaymentRecord", "PaymentRecord")
+                    b.HasOne("proiect_licenta.Models.PaymentRecord", "PaymentRecord")
                         .WithOne("RefundRequest")
-                        .HasForeignKey("proiect_licenta.Server.Models.RefundRequest", "PaymentId")
+                        .HasForeignKey("proiect_licenta.Models.RefundRequest", "PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("RefundRequests")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -437,7 +645,7 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Report", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Report", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
                         .WithMany("Reports")
@@ -445,7 +653,7 @@ namespace proiect_licenta.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("Reports")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -456,7 +664,7 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Review", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Review", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
                         .WithMany("Reviews")
@@ -464,7 +672,7 @@ namespace proiect_licenta.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -475,15 +683,15 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.UserCard", b =>
+            modelBuilder.Entity("proiect_licenta.Models.UserCard", b =>
                 {
-                    b.HasOne("proiect_licenta.Server.Models.Card", "Card")
+                    b.HasOne("proiect_licenta.Models.Card", "Card")
                         .WithMany("UserCards")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("UserCards")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -494,15 +702,15 @@ namespace proiect_licenta.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.UserVoucher", b =>
+            modelBuilder.Entity("proiect_licenta.Models.UserVoucher", b =>
                 {
-                    b.HasOne("proiect_licenta.Server.Models.MyUser", "User")
+                    b.HasOne("proiect_licenta.Models.MyUser", "User")
                         .WithMany("UserVouchers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("proiect_licenta.Server.Models.Voucher", "Voucher")
+                    b.HasOne("proiect_licenta.Models.Voucher", "Voucher")
                         .WithMany("UserVouchers")
                         .HasForeignKey("VoucherId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -526,17 +734,17 @@ namespace proiect_licenta.Migrations
                     b.Navigation("Reviews");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Card", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Card", b =>
                 {
                     b.Navigation("UserCards");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Category", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Category", b =>
                 {
                     b.Navigation("AppCategories");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.MyUser", b =>
+            modelBuilder.Entity("proiect_licenta.Models.MyUser", b =>
                 {
                     b.Navigation("Installs");
 
@@ -553,7 +761,7 @@ namespace proiect_licenta.Migrations
                     b.Navigation("UserVouchers");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.PaymentRecord", b =>
+            modelBuilder.Entity("proiect_licenta.Models.PaymentRecord", b =>
                 {
                     b.Navigation("Install")
                         .IsRequired();
@@ -562,7 +770,7 @@ namespace proiect_licenta.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("proiect_licenta.Server.Models.Voucher", b =>
+            modelBuilder.Entity("proiect_licenta.Models.Voucher", b =>
                 {
                     b.Navigation("UserVouchers");
                 });

@@ -9,9 +9,14 @@ namespace proiect_licenta.Controllers
     [Route("api/Reviews")]
     [ApiController]
     [Authorize]
-    public class ReviewController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class ReviewController : ControllerBase
     {
         private readonly ReviewService _reviewService;
+
+        public ReviewController(ReviewService reviewService)
+        {
+            _reviewService = reviewService;
+        }
 
         // GET: api/MyModel
         [HttpGet("get_all_reviews")]

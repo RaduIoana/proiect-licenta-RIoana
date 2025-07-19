@@ -4,7 +4,7 @@ using proiect_licenta.Models;
 
 namespace proiect_licenta.Contexts;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<MyUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

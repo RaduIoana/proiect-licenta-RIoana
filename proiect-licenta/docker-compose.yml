@@ -24,6 +24,8 @@ services:
       - mysql
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    env_file:
+      - .env
     entrypoint: >
       sh -c "sleep 10 && dotnet proiect-licenta.dll"
 

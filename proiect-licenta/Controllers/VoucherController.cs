@@ -9,9 +9,14 @@ namespace proiect_licenta.Controllers
     [Route("api/Vouchers")]
     [ApiController]
     [Authorize]
-    public class VoucherController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class VoucherController : ControllerBase
     {
         private readonly VoucherService _voucherService;
+
+        public VoucherController(VoucherService voucherService, ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+        {
+            _voucherService = voucherService;
+        }
 
         // GET: api/MyModel
         [HttpGet("get_all_vouchers")]

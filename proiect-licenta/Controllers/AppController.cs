@@ -8,9 +8,14 @@ namespace proiect_licenta.Controllers
 {
     [Route("api/Apps")]
     [ApiController]
-    public class AppController(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class AppController : ControllerBase
     {
         private readonly AppService _appService;
+
+        public AppController(AppService appService)
+        {
+            _appService = appService;
+        }
         
         // dummies for frontend dev
         private static readonly string[] Summaries = new[]
@@ -33,7 +38,7 @@ namespace proiect_licenta.Controllers
                 .ToArray();
         }
         
-        [HttpGet("get_all_appss")]
+        [HttpGet("get_all_apps")]
         public async Task<ActionResult<IEnumerable<App>>> GetAllApps()
         {
             return Ok(await _appService.GetAllApps());

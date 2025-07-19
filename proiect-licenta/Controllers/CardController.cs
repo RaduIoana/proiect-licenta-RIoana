@@ -9,9 +9,16 @@ namespace proiect_licenta.Controllers
     [Route("api/Cards")]
     [ApiController]
     [Authorize]
-    public class CardController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class CardController : ControllerBase
     {
         private readonly CardService _cardService;
+        private readonly ApplicationDbContext _context;
+
+        public CardController(CardService cardService, ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+        {
+            _cardService = cardService;
+            _context = context;
+        }
 
         [HttpGet("get_all_cards")]
         public async Task<ActionResult<IEnumerable<Card>>> GetAllCards()

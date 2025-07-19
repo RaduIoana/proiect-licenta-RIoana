@@ -9,9 +9,14 @@ namespace proiect_licenta.Controllers
     [Route("api/Reports")]
     [ApiController]
     [Authorize]
-    public class ReportController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor) : ControllerBase
+    public class ReportController : ControllerBase
     {
         private readonly ReportService _reportService;
+
+        public ReportController(ReportService reportService)
+        {
+            _reportService = reportService;
+        }
 
         // GET: api/MyModel
         [HttpGet("get_all_reports")]
