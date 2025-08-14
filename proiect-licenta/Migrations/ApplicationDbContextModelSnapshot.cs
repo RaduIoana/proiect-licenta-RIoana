@@ -325,7 +325,7 @@ namespace proiect_licenta.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<string>("WalletAddresses")
+                    b.Property<string>("WalletAddress")
                         .IsRequired()
                         .HasColumnType("longtext");
 

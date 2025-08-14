@@ -9,6 +9,6 @@ namespace proiect_licenta.Models
         public string CardNumber { get; set; }
         public DateTime ExpiryDate {  get; set; }
         public string CardName { get; set; }
-        [JsonIgnore] public virtual ICollection<UserCard> UserCards { get; set; }
+        [JsonIgnore] public virtual ICollection<UserCard> UserCards { get; set; } = new List<UserCard>();
     }
 }

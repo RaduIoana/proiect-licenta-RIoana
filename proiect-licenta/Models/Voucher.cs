@@ -8,6 +8,6 @@ namespace proiect_licenta.Models
         [Key] public int Key { get; set; }
         public int Balance { get; set; }
         public DateTime ExpiryDate { get; set; }
-        [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; }
+        [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
     }
 }

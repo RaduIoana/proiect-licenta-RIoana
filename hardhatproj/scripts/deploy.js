@@ -8,12 +8,12 @@ async function main() {
     const unlockTime = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
     // Deploy contract with unlockTime
-    const Lock = await hre.ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime, { value: hre.ethers.parseEther("0.1") });
+    const BuyApp = await hre.ethers.getContractFactory("BuyApp");
+    const buyapp = await BuyApp.deploy();
 
-    await lock.waitForDeployment();
+    await buyapp.waitForDeployment();
 
-    console.log(`Lock deployed to: ${await lock.getAddress()}`);
+    console.log(`BuyApp deployed to: ${await buyapp.getAddress()}`);
 }
 
 main().catch((error) => {

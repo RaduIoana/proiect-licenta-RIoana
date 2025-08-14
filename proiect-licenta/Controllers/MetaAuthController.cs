@@ -1,22 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Nethereum.Signer;
-using Newtonsoft.Json.Linq;
+using proiect_licenta.DTOs;
 using proiect_licenta.Services;
 
 namespace proiect_licenta.Controllers;
 
+[Authorize]
 [Route("api/MetaAuth")]
 [ApiController]
 public class MetaAuthController : ControllerBase
 {
     private readonly LicenseGenerationService _licenseService;
     
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public MetaAuthController(LicenseGenerationService licenseService, IHttpContextAccessor httpContextAccessor)
+    private readonly MetaAuthService _metaAuthService;
+    
+    public MetaAuthController(LicenseGenerationService licenseService, MetaAuthService metaAuthService)
     {
         _licenseService = licenseService;
-        _httpContextAccessor = httpContextAccessor;
+        _metaAuthService = metaAuthService;
     }
     
     [HttpGet("{walletAddress}")]
@@ -36,14 +38,27 @@ public class MetaAuthController : ControllerBase
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
     }
+
+    [HttpGet("getWallet")]
+    public async Task<ActionResult<string>> GetWalletAddress()
+    {
+        return Ok(await _metaAuthService.GetWalletAddress());
+    }
+
+    // for testing on local hardhat node only; no need to call from frontend
+    [HttpPut("setWallet")]
+    public async Task<ActionResult> SetWallet(string walletAddress)
+    {
+        return Ok(await _metaAuthService.SetWalletAddress(walletAddress));
+    }
     
     [HttpPost("verify")]
     [Consumes("application/json")]
-    public IActionResult Verify([FromBody] JObject request)
+    public async Task<IActionResult> Verify([FromBody] SignedMetaMessageDto request)
     {
-        string wallet = request["wallet"]?.ToString();
-        string signature = request["signature"]?.ToString();
-        string message = "Authenticate with my app";
+        string wallet = request.Wallet;
+        string signature = request.Signature;
+        string message = request.Message;
 
         if (string.IsNullOrEmpty(wallet) || string.IsNullOrEmpty(signature))
         {
@@ -56,11 +71,13 @@ public class MetaAuthController : ControllerBase
 
         if (string.Equals(wallet, recoveredAddress, StringComparison.OrdinalIgnoreCase))
         {
-            return Ok(new { success = true, message = "Authentication successful." });
+            // Check if account has a wallet, if not bind it if it's not already used
+            if(await _metaAuthService.CheckUserWalletAssociation(wallet))
+                return Ok(new { success = true, message = "Authentication successful." });
         }
-        else
-        {
-            return Unauthorized(new { success = false, message = "Authentication failed." });
-        }
+        
+        return Unauthorized(new { success = false, message = "Authentication failed." });
     }
+
+    // some kind of validation endpoint
 }

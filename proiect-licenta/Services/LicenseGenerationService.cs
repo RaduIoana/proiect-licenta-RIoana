@@ -10,10 +10,10 @@ public class LicenseGenerationService
     private readonly ClaimsPrincipal _user;
     private readonly Web3 _web3;
 
-    public LicenseGenerationService(ApplicationDbContext context, ClaimsPrincipal user)
+    public LicenseGenerationService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
-        _user = user;
+        _user = httpContextAccessor.HttpContext!.User;
         _web3 = new Web3("https://mainnet.infura.io/v3/d0830a3002cf4e00a65cb05ce6b31cf8");
     }
     

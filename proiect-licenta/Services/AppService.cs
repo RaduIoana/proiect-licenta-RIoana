@@ -2,7 +2,10 @@
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Nethereum.Contracts.Standards.ERC1155.ContractDefinition;
+using Nethereum.Hex.HexTypes;
+using Nethereum.Web3;
+using Newtonsoft.Json.Linq;
 
 namespace proiect_licenta.Services
 {
@@ -12,11 +15,13 @@ namespace proiect_licenta.Services
         private readonly ApplicationDbContext _context;
         //private readonly PrivilegeChecker _privilegeChecker;
         private readonly ClaimsPrincipal _user;
+        private readonly Web3 _web3;
 
-        public AppService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+        public AppService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor, Web3 web3)
         {
             _context = context;
             _user = httpContextAccessor.HttpContext!.User;
+            _web3 = web3;
         }
 
         public async Task<IEnumerable<App>> GetAllApps()
@@ -42,8 +47,35 @@ namespace proiect_licenta.Services
 
         public async Task<App> CreateApp(App app)
         {
+            var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
+            var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/BuyApp.sol/BuyApp.json"));
+                
+            var abi = contractData["abi"].ToString();
+            var contractAddress  = "0x5FbDB2315678afecb367f032d93F642f64180aa3";  // this is local addr
+            
+            var func = _web3.Eth.GetContractQueryHandler<ExistsFunction>();
+            bool exists = await func.QueryAsync<bool>(contractAddress, new ExistsFunction{Id = app.Id});
+            Console.WriteLine(exists);
+            
             _context.Apps.Add(app);
             await _context.SaveChangesAsync();
+
+            if (app.Price != 0 && !exists)
+            {
+                // call contract with admin account and add app to mapping
+                var contract = _web3.Eth.GetContract(abi, contractAddress);
+                var addAppFunction = contract.GetFunction("addApp");
+                var receipt = await addAppFunction.SendTransactionAndWaitForReceiptAsync(
+                    from: _web3.TransactionManager.Account.Address,
+                    gas: new HexBigInteger(3000000),
+                    value: null,
+                    functionInput: new object[] {app.Id, Web3.Convert.ToWei(app.Price), ownerAddress}
+                );
+                // setting address to owner address is placeholder until implementing vendor accs
+            
+                Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
+            }
+            
             return app;
         }
 
@@ -53,7 +85,33 @@ namespace proiect_licenta.Services
             var existingApp = await _context.Apps.FindAsync(app.Id);
             if (existingApp == null)
                 throw new Exception("App does not exist");
+            
+            var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
+            var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/BuyApp.sol/BuyApp.json"));
+                
+            var abi = contractData["abi"].ToString();
+            var contractAddress  = "0x5FbDB2315678afecb367f032d93F642f64180aa3";  // this is local addr
+            
+            var func = _web3.Eth.GetContractQueryHandler<ExistsFunction>();
+            bool exists = await func.QueryAsync<bool>(contractAddress, new ExistsFunction{Id = app.Id});
+            Console.WriteLine(exists);
 
+            if (exists)
+            {
+                var contract = _web3.Eth.GetContract(abi, contractAddress);
+                var updateAppFunction = contract.GetFunction("updateApp");
+                var receipt = await updateAppFunction.SendTransactionAndWaitForReceiptAsync(
+                    from: _web3.TransactionManager.Account.Address,
+                    gas: new HexBigInteger(3000000),
+                    value: null,
+                    functionInput: new object[] {app.Id, Web3.Convert.ToWei(app.Price), ownerAddress}
+                );
+                // setting address to owner address is placeholder until implementing vendor accs
+            
+                Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
+            }
+
+            _context.Entry(existingApp).State = EntityState.Detached;
             _context.Entry(app).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return app;
@@ -61,11 +119,34 @@ namespace proiect_licenta.Services
 
         public async Task DeleteApp(int id)
         {
-            var task = await _context.Apps.FindAsync(id);
-            if (task == null)
+            var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/BuyApp.sol/BuyApp.json"));
+                
+            var abi = contractData["abi"].ToString();
+            var contractAddress  = "0x5FbDB2315678afecb367f032d93F642f64180aa3";  // this is local addr
+            
+            var app = await _context.Apps.FindAsync(id);
+            if (app == null)
                 throw new Exception("App does not exist");
+            
+            var func = _web3.Eth.GetContractQueryHandler<ExistsFunction>();
+            bool exists = await func.QueryAsync<bool>(contractAddress, new ExistsFunction{Id = app.Id});
+            Console.WriteLine(exists);
+            
+            if (exists)
+            {
+                var contract = _web3.Eth.GetContract(abi, contractAddress);
+                var deleteAppFunction = contract.GetFunction("deleteApp");
+                var receipt = await deleteAppFunction.SendTransactionAndWaitForReceiptAsync(
+                    from: _web3.TransactionManager.Account.Address,
+                    gas: new HexBigInteger(3000000),
+                    value: null,
+                    functionInput: new object[] {app.Id}
+                );
+            
+                Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
+            }
 
-            _context.Apps.Remove(task);
+            _context.Apps.Remove(app);
             await _context.SaveChangesAsync();
         }
 

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
@@ -50,24 +51,28 @@ namespace proiect_licenta.Controllers
             return Ok(await _appService.GetApp(id));
         }
 
+        [Authorize]
         [HttpGet("appInLibraryCheck")]
         public async Task<Boolean> AppInLibraryCheck(int id)
         {
             return await _appService.AppOwned(id);
         }
 
+        [Authorize]
         [HttpPut]
         public async Task<ActionResult<App>> PutApp(App app)
         {
             return Ok(await _appService.EditApp(app));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<App>> PostApp(App app)
         {
             return Ok(await _appService.CreateApp(app));
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteApp(int id)
         {

@@ -1,13 +1,15 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
 using proiect_licenta.Services;
+
+Console.WriteLine($"Current Directory: {Directory.GetCurrentDirectory()}");
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -18,7 +20,6 @@ if (environment == "Development")
 {
     DotNetEnv.Env.Load(); // Only loads .env locally
 }
-//DotNetEnv.Env.Load();
 var key = Environment.GetEnvironmentVariable("JWT__KEY");
 var issuer = Environment.GetEnvironmentVariable("JWT__ISSUER");
 var audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE");
@@ -28,10 +29,14 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     serverOptions.ListenAnyIP(8080);
 });
 
+// for on-chain testing:
+//var web3 = new Web3($"https://mainnet.infura.io/v3/{Environment.GetEnvironmentVariable("INFURA__API")}");
+//for local testing:
+var localKey = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__KEY__LOCAL");
+var web3 = new Web3(new Account(localKey), "http://host.docker.internal:8545");
 
-// FIX ME - store this nicely and securely
-//var web3 = new Web3("https://mainnet.infura.io/v3/d0830a3002cf4e00a65cb05ce6b31cf8");
-//var balance = await web3.Eth.GetBalance.SendRequestAsync("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae");
+// check
+//var balance = await web3.Eth.GetBalance.SendRequestAsync(Environment.GetEnvironmentVariable("0xBa7661DC6603A6D2c1b4fF58d2F5675211C1A7D6"));
 //var etherAmount = Web3.Convert.FromWei(balance.Value);
 //Console.WriteLine($"Balance in Ether: {etherAmount}");
 
@@ -55,30 +60,57 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-var signingKey = new SymmetricSecurityKey(Convert.FromBase64String(key));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(jwtOptions =>
-    {
-        jwtOptions.Authority = issuer;
-        jwtOptions.Audience = audience;
-        jwtOptions.TokenValidationParameters = new TokenValidationParameters{
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = true,
-            IssuerSigningKey = signingKey //placeholder?
-        };
-    });
-
-builder.Services.AddAuthorization();
-
 builder.Services.AddIdentity<MyUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders().AddApiEndpoints();
 
+var signingKey = new SymmetricSecurityKey(Convert.FromBase64String(key));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(jwtOptions =>
+{
+    jwtOptions.Authority = issuer;
+    jwtOptions.Audience = audience;
+    jwtOptions.TokenValidationParameters = new TokenValidationParameters{
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = signingKey
+    };
+});
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+builder.Services.AddSingleton(web3);
 builder.Services.AddScoped<AppService>();
 builder.Services.AddScoped<AppstoreService>();
 builder.Services.AddScoped<AuthService>();
@@ -94,7 +126,6 @@ builder.Services.AddScoped<UserAccService>();
 builder.Services.AddScoped<VoucherService>();
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -10,12 +10,12 @@ namespace proiect_licenta.Models
         public int DaysLeft { get; set; } = 0;
         public double AccountBalance { get; set; } = 0.0;
 
-        [JsonIgnore] public virtual ICollection<UserCard> UserCards { get; set; }
-        [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; }
-        [JsonIgnore] public virtual ICollection<RefundRequest> RefundRequests { get; set; }
-        [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; }
-        [JsonIgnore] public virtual ICollection<Install> Installs { get; set; }
-        [JsonIgnore] public virtual ICollection<Report> Reports { get; set; }
-        [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; }
+        [JsonIgnore] public virtual ICollection<UserCard> UserCards { get; set; } = new List<UserCard>();
+        [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
+        [JsonIgnore] public virtual ICollection<RefundRequest> RefundRequests { get; set; } = new List<RefundRequest>();
+        [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();
+        [JsonIgnore] public virtual ICollection<Install> Installs { get; set; } = new List<Install>();
+        [JsonIgnore] public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+        [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

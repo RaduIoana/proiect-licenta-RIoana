@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
 using proiect_licenta.Services;
@@ -6,6 +7,7 @@ using proiect_licenta.Services;
 namespace proiect_licenta.Controllers
 {
     [Route("api/Auth")]
+    [AllowAnonymous]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -20,14 +22,14 @@ namespace proiect_licenta.Controllers
         [Consumes("application/json")]
         public async Task<ActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            return Ok(await _authService.Register(registerRequest));
+            return Ok(new { token = await _authService.Register(registerRequest)});
         }
     
         [HttpPost("login")]
         [Consumes("application/json")]
         public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            return Ok(await _authService.Login(loginRequest));
+            return Ok(new { token = await _authService.Login(loginRequest)});
         }
     }
     

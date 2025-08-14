@@ -28,6 +28,8 @@ services:
       - .env
     entrypoint: >
       sh -c "sleep 10 && dotnet proiect-licenta.dll"
+    volumes:
+          - 'C:/Users/Radu Ioana/RiderProjects/proiect-licenta/hardhatproj:/app/hardhatproj'
 
 volumes:
   mysql_data:

@@ -42,10 +42,11 @@ namespace proiect_licenta.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("name", user.UserName!),
             };
             
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT__KEY")!));
+            var key = new SymmetricSecurityKey(Convert.FromBase64String(Environment.GetEnvironmentVariable("JWT__KEY")!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             
             var token = new JwtSecurityToken(
@@ -72,12 +73,14 @@ namespace proiect_licenta.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("name", user.UserName!),
             };
             
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+            claims.AddRange(roles.Select(r => new Claim("role", r)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT__KEY")!));
+            var key = new SymmetricSecurityKey(Convert.FromBase64String(Environment.GetEnvironmentVariable("JWT__KEY")!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             
             var token = new JwtSecurityToken(
