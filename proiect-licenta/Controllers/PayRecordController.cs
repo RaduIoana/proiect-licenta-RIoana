@@ -1,56 +1,58 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
+using proiect_licenta.DTOs;
 using proiect_licenta.Models;
 using proiect_licenta.Services;
 
-namespace proiect_licenta.Controllers
+namespace proiect_licenta.Controllers;
+
+[Route("api/PaymentRecords")]
+[ApiController]
+[Authorize]
+public class PayRecordController : ControllerBase
 {
-    [Route("api/PaymentRecords")]
-    [ApiController]
-    [Authorize]
-    public class PayRecordController : ControllerBase
+    private readonly PaymentRecordService _paymentRecordService;
+
+    public PayRecordController(PaymentRecordService paymentRecordService)
     {
-        private readonly PayRecordService _paymentRecordService;
-
-        public PayRecordController(PayRecordService paymentRecordService)
-        {
-            _paymentRecordService = paymentRecordService;
-        }
-
-        // GET: api/MyModel
-        [HttpGet("get_all_payRecords")]
-        public async Task<ActionResult<IEnumerable<PaymentRecord>>> GetAllPaymentRecords()
-        {
-            // Simulate async database access
-            return Ok(await _paymentRecordService.GetAllPaymentRecords());
-        }
-
-        // GET: api/MyModel/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PaymentRecord>> GetById(int id)
-        {
-            return Ok(await _paymentRecordService.GetPaymentRecord(id));
-        }
-
-        [HttpPut]
-        public async Task<ActionResult<PaymentRecord>> PutPaymentRecord(PaymentRecord payRecord)
-        {
-            return Ok(await _paymentRecordService.EditPaymentRecord(payRecord));
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<PaymentRecord>> PostPaymentRecord(PaymentRecord payRecord)
-        {
-            return Ok(await _paymentRecordService.CreatePaymentRecord(payRecord));
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeletePaymentRecord(int id)
-        {
-            await _paymentRecordService.DeletePaymentRecord(id);
-            return NoContent();
-        }
+        _paymentRecordService = paymentRecordService;
+    }
+    
+    [HttpGet("get_user_payRecords")]
+    public async Task<ActionResult<IEnumerable<PaymentRecord>>> GetUserPaymentRecords()
+    {
+        return Ok(await _paymentRecordService.GetUserPaymentRecords());
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<ActionResult<PaymentRecord>> GetById(int id)
+    {
+        return Ok(await _paymentRecordService.GetPaymentRecord(id));
     }
 
+    [HttpPut]
+    public async Task<ActionResult<PostPaymentRecordResponseDTO>> PutPaymentRecord(PaymentRecord payRecord)
+    {
+        return Ok(await _paymentRecordService.EditPaymentRecord(payRecord));
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<PostPaymentRecordResponseDTO>> PostPaymentRecord(PostPaymentRecordRequestDTO payRecord)
+    {
+        return Ok(await _paymentRecordService.CreatePaymentRecord(payRecord));
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeletePaymentRecord(int id)
+    {
+        await _paymentRecordService.DeletePaymentRecord(id);
+        return NoContent();
+    }
+
+    [HttpPost("confirm/{id}")]
+    public async Task<ActionResult<ConfirmPaymentResponseDto>> ConfirmPaymentRecord(int id)
+    {
+        return Ok(await _paymentRecordService.ConfirmPaymentRecord(id));
+    }
 }

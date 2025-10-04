@@ -10,17 +10,17 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
     {
     }
     
+    public DbSet<AppFile> AppFiles { get; set; }
     public DbSet<App> Apps { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<AppCategory> AppCategories { get; set; }
-    public DbSet<Card> Cards { get; set; }
-    public DbSet<Install> Installs { get; set; }
+    public DbSet<LibraryRecord> Libraries { get; set; }
     public DbSet<MyUser> MyUsers { get; set; }
     public DbSet<PaymentRecord> PaymentRecords { get; set; }
+    public DbSet<License> Licenses { get; set; }
     public DbSet<RefundRequest> RefundRequests { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<Review> Reviews { get; set; }
-    public DbSet<UserCard> UserCards { get; set; }
     public DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     
@@ -28,23 +28,15 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<AppCategory>().HasKey(ab => new { ab.AppId, ab.CategoryId });
-        modelBuilder.Entity<Install>().HasKey(ab => new { ab.UserId, ab.AppId, ab.PaymentId });
+        modelBuilder.Entity<LibraryRecord>().HasKey(ab => new { ab.UserId, ab.AppId, ab.PaymentId });
         modelBuilder.Entity<Report>().HasKey(ab => new { ab.UserId, ab.AppId });
         modelBuilder.Entity<Review>().HasKey(ab => new { ab.AppId, ab.UserId });
-        modelBuilder.Entity<UserCard>().HasKey(ab => new { ab.CardId, ab.UserId });
         modelBuilder.Entity<UserVoucher>().HasKey(ab => new { ab.VoucherId, ab.UserId });
         
-        // user - usercard - card relationship
-        modelBuilder.Entity<UserCard>()
-            .HasOne(t => t.User)
-            .WithMany(t => t.UserCards)
-            .HasForeignKey(t => t.UserId);
-
-        modelBuilder.Entity<UserCard>()
-            .HasOne(t => t.Card)
-            .WithMany(t => t.UserCards)
-            .HasForeignKey(t => t.CardId);
-
+        modelBuilder.Entity<App>()
+            .HasOne(a => a.AppFile)
+            .WithOne(af => af.App)
+            .HasForeignKey<AppFile>(af => af.AppId);
 
         // user - uservoucher - voucher relationship
         modelBuilder.Entity<UserVoucher>()
@@ -70,18 +62,18 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .HasForeignKey(t => t.CategoryId);
         
         // install relationship
-        modelBuilder.Entity<Install>()
+        modelBuilder.Entity<LibraryRecord>()
             .HasOne(t => t.User)
-            .WithMany(t => t.Installs)
+            .WithMany(t => t.Libraries)
             .HasForeignKey(t => t.UserId);
-        modelBuilder.Entity<Install>()
+        modelBuilder.Entity<LibraryRecord>()
             .HasOne(t => t.App)
-            .WithMany(t => t.Installs)
+            .WithMany(t => t.Libraries)
             .HasForeignKey(t => t.AppId);
-        modelBuilder.Entity<Install>()
+        modelBuilder.Entity<LibraryRecord>()
             .HasOne(t => t.PaymentRecord)
-            .WithOne(t => t.Install)
-            .HasForeignKey<Install>(t => t.PaymentId);
+            .WithOne(t => t.LibraryRecord)
+            .HasForeignKey<LibraryRecord>(t => t.PaymentId);
         
         // refund request relationship
         modelBuilder.Entity<RefundRequest>()

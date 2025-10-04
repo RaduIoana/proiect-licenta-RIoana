@@ -2,6 +2,7 @@
 {
     public enum PaymentType
     {
+        Free,
         Install,
         Microtransaction,
         Subscription

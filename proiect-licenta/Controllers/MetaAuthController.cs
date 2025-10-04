@@ -11,11 +11,11 @@ namespace proiect_licenta.Controllers;
 [ApiController]
 public class MetaAuthController : ControllerBase
 {
-    private readonly LicenseGenerationService _licenseService;
+    private readonly LicenseService _licenseService;
     
     private readonly MetaAuthService _metaAuthService;
     
-    public MetaAuthController(LicenseGenerationService licenseService, MetaAuthService metaAuthService)
+    public MetaAuthController(LicenseService licenseService, MetaAuthService metaAuthService)
     {
         _licenseService = licenseService;
         _metaAuthService = metaAuthService;

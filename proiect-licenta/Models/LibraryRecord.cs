@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using proiect_licenta.Models;
 
 namespace proiect_licenta.Models
 {
-    public class Install
+    public class LibraryRecord
     {
         [Required] public string UserId { get; set; }
         [Required] public int AppId { get; set; }

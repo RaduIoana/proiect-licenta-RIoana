@@ -1,93 +1,93 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using proiect_licenta.Contexts;
+using proiect_licenta.DTOs;
 using proiect_licenta.Models;
 
-namespace proiect_licenta.Services
+namespace proiect_licenta.Services;
+
+public class AppstoreService
 {
-    public class AppstoreService
+    // add  access checking
+    private readonly ApplicationDbContext _context;
+    private readonly AppService _appService;
+    private readonly ExeService _exeService;
+    //private readonly PrivilegeChecker _privilegeChecker;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public AppstoreService(ApplicationDbContext context, AppService appService,
+        ExeService exeService, IHttpContextAccessor httpContextAccessor)
     {
-        // add  access checking
-        private readonly ApplicationDbContext _context;
-        private readonly AppService _appService;
-        private readonly InstallService _installService;
-        //private readonly PrivilegeChecker _privilegeChecker;
-        //private readonly ClaimsPrincipal _user;
+        _context = context;
+        _appService = appService;
+        _exeService = exeService;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
-        public AppstoreService(ApplicationDbContext context, AppService appService, 
-            InstallService installService, IHttpContextAccessor httpContextAccessor)
-        {
-            _context = context;
-            _appService = appService;
-            _installService = installService;
-        }
+    public async Task<(Stream stream, string fileName)> InstallApp(int appId)
+    {
+        /*
+         * - move checking for subscription to hardhat, send something else with the transaction to check if disc applies
+         */
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Libraries)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new Exception("User Not Found");
 
-        public async Task InstallApp(string userId, int appId, bool hasSubscription)
-        {
-            // Fetch user and app
-            var user = _context.MyUsers.Include(u => u.Installs).FirstOrDefault(u => u.Id == userId);
-            if (user == null) throw new Exception("User not found.");
+        var app = await _context.Apps.Include(a => a.AppFile)
+            .FirstOrDefaultAsync(a => a.Id == appId);
+        if (app == null) 
+            throw new Exception("App not found.");
+        if (app.AppFile == null)
+            throw new Exception("App has no executable uploaded.");
 
-            var app = _context.Apps.FirstOrDefault(a => a.Id == appId);
-            if (app == null) throw new Exception("App not found.");
+        if(!await _appService.AppOwned(app.Id))
+            throw new Exception("App is not owned.");
 
-            if (user.Installs.Any(i => i.AppId == appId))
-                throw new Exception("App is already installed.");
+        return await _exeService.DownloadFile(app.AppFile.Cid);
+    }
 
-            double finalPrice = 0;
-            if (app.Price != 0)
-            {
-                finalPrice = hasSubscription ? _appService.GetPriceWithDiscount(appId) : _appService.GetPriceWithoutDiscount(appId);
-                
-                if (finalPrice > user.AccountBalance)
-                    throw new Exception("Insufficient balance. Transaction failed.");
+    // this should mostly have the effect of removing from library
+    // also shouldn't work for paid apps? idk
+    public async Task RemoveFromLibrary(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Libraries)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new Exception("User Not Found");
 
-                user.AccountBalance -= finalPrice;
-            }
+        if (!await _appService.AppOwned(appId))
+            throw new Exception("App not owned.");
 
-            // Add the app to the installed list
-            var install = new Install
-            {
-                UserId = userId,
-                AppId = appId,
-                PaymentId = GeneratePaymentId()
-            };
-            await _installService.CreateInstall(install);
-            user.Installs.Add(install);
- 
-            // Save changes
-            _context.SaveChanges();
+        var appToRemove = user.Libraries.FirstOrDefault(i => i.AppId == appId);
+        user.Libraries.Remove(appToRemove);
+        _context.SaveChangesAsync();
 
-            Console.WriteLine($"App '{app.Name}' installed successfully. Remaining balance: {user.AccountBalance}");
-        }
+        Console.WriteLine("The app has been successfully uninstalled.");
+    }
 
-        private int GeneratePaymentId()
-        {
-            // placeholder
-            return new Random().Next(1000, 9999);
-        }
+    public async Task<double> CalculateAppPrice(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Libraries)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new Exception("User Not Found");
 
-        public void UninstallApp(string userId, int appId)
-        {
-            var user = _context.MyUsers.Include(u => u.Installs).FirstOrDefault(u => u.Id == userId);
-            if (user == null) throw new Exception("User not found.");
+        var app = await _context.Apps.Include(a => a.AppFile)
+            .FirstOrDefaultAsync(a => a.Id == appId);
+        if (app == null) 
+            throw new Exception("App not found.");
 
-            if (!user.Installs.Any())
-            {
-                Console.WriteLine("You have no installed apps.");
-                return;
-            }
+        var defaultPrice = app.Price;
+        
+        if (user.Subscription)
+            defaultPrice -= app.Discount * defaultPrice / 100;
+        
+        // add voucher check
 
-            var appToRemove = user.Installs.FirstOrDefault(i => i.AppId == appId);
-            if (appToRemove == null)
-            {
-                Console.WriteLine("App not found in your installed apps.");
-                return;
-            }
-
-            user.Installs.Remove(appToRemove);
-            _context.SaveChanges();
-
-            Console.WriteLine("The app has been successfully uninstalled.");
-        }
+        return defaultPrice;
     }
 }

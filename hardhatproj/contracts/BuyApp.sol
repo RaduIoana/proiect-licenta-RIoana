@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract BuyApp is ERC721URIStorage, Ownable{
     
@@ -14,17 +15,33 @@ contract BuyApp is ERC721URIStorage, Ownable{
     uint256 nextToken;
     
     mapping(uint256 => AppDetails) public apps;
-    //mapping(uint256 => uint256) public appIds;
+    // user wallet -> app id -> token id
+    mapping(address => mapping(uint256 => uint256)) private _licenses;
     
     event PaymentFinalized(address from, address to, uint256 sum);
+    event LicenseMinted(uint256 indexed licenseId);
 
     constructor() ERC721("AppLicense", "ALC") Ownable(msg.sender){}
     
     /*
-        - see if can use caller addr as the buyer directly to cut on gas -> msg.sender
         - vendor addr should be sent to the contract when api calls it, it's the wallet addr of the app publisher
-        - buy: take x eth from buyer, deposit in contract (?), wait until receive signal that it was sent successfully
     */
+    
+    
+    //following 3 functions make nft soulbound
+    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
+        address from = _ownerOf(tokenId);
+        require(from == address(0), "Soulbound");
+        return super._update(to, tokenId, auth);
+    }
+
+    function approve(address to, uint256 tokenId) public virtual override(ERC721, IERC721) {
+        revert("Soulbound");
+    }
+
+    function setApprovalForAll(address operator, bool approved) public virtual override(ERC721, IERC721) {
+        revert("Soulbound");
+    }
     
     function exists(uint256 appId) public view returns (bool){
         return apps[appId].vendor != address(0);
@@ -50,7 +67,6 @@ contract BuyApp is ERC721URIStorage, Ownable{
     }
 
     function buyApp(uint256 appId) external payable{
-        /*, string memory tokenURI*/
         AppDetails memory app = apps[appId];
         require(app.vendor != address(0), "App not found");
         
@@ -59,11 +75,22 @@ contract BuyApp is ERC721URIStorage, Ownable{
             payable(app.vendor).transfer(msg.value);
             emit PaymentFinalized(msg.sender, app.vendor, app.price);
         }
+    }
+
+    function hasLicense(address user, uint256 appId) public view returns (bool) {
+        return _licenses[user][appId] != 0;
+    }
+    
+    function mintLicense(address buyer, uint256 appId, string memory tokenURI) public returns (uint256){
+        require(_licenses[buyer][appId] == 0, "License already exists");
+        uint256 licenseId = nextToken++;
+
+        _safeMint(buyer, licenseId);
+        _setTokenURI(licenseId, tokenURI);
+        _licenses[buyer][appId] = licenseId;
         
-        // commented until implemented in other components
-        //uint256 licenseId = nextToken++;
-        //_safeMint(msg.sender, licenseId);
-        //_setTokenURI(licenseId, tokenURI);
-        //appIds[licenseId] = appId;
+        emit LicenseMinted(licenseId);
+
+        return licenseId;
     }
 }

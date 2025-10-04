@@ -1,3 +1,4 @@
+using Ipfs.Http;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,14 +21,12 @@ if (environment == "Development")
 {
     DotNetEnv.Env.Load(); // Only loads .env locally
 }
+
+var ipfs = new IpfsClient("http://host.docker.internal:5001");
+
 var key = Environment.GetEnvironmentVariable("JWT__KEY");
 var issuer = Environment.GetEnvironmentVariable("JWT__ISSUER");
 var audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE");
-
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(8080);
-});
 
 // for on-chain testing:
 //var web3 = new Web3($"https://mainnet.infura.io/v3/{Environment.GetEnvironmentVariable("INFURA__API")}");
@@ -53,7 +52,8 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -111,19 +111,20 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddSingleton(web3);
+builder.Services.AddSingleton<IpfsClient>(_ => ipfs);
 builder.Services.AddScoped<AppService>();
 builder.Services.AddScoped<AppstoreService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<CardService>();
-builder.Services.AddScoped<InstallService>();
-builder.Services.AddScoped<LicenseGenerationService>();
+builder.Services.AddScoped<LibraryService>();
+builder.Services.AddScoped<LicenseService>();
 builder.Services.AddScoped<MetaAuthService>();
-builder.Services.AddScoped<PayRecordService>();
+builder.Services.AddScoped<PaymentRecordService>();
 builder.Services.AddScoped<RefundService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<UserAccService>();
 builder.Services.AddScoped<VoucherService>();
+builder.Services.AddScoped<ExeService>();
 
 var app = builder.Build();
 

@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     container_name: proiect-licenta
     ports:
-      - "5151:8080"  # host:container
+      - "5152:8080"  # host:container
     depends_on:
       - mysql
     environment:
