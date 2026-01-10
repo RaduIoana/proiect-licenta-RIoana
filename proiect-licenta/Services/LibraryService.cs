@@ -71,20 +71,6 @@ public class LibraryService
         return libraryRecord;
     }
 
-    /* Unnecessary?
-    public async Task<Install> EditInstall(Install install)
-    {
-        //check privilege
-        var existingInstall = await _context.Installs.FindAsync(install.Id);
-        if (existingInstall == null)
-            throw new Exception("Install does not exist");
-
-        _context.Entry(install).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return install;
-    }
-    */
-
     public async Task DeleteLibraryRecord(int id)
     {
         var libraryRecord = await _context.Libraries.FindAsync(id);

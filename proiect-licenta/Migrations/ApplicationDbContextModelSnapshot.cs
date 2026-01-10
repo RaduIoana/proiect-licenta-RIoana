@@ -179,11 +179,8 @@ namespace proiect_licenta.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("double");
-
-                    b.Property<float>("Rating")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -399,6 +396,9 @@ namespace proiect_licenta.Migrations
                     b.Property<int?>("LicenseId")
                         .HasColumnType("int");
 
+                    b.Property<decimal?>("PaymentAmount")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<DateTime>("PaymentDT")
                         .HasColumnType("datetime(6)");
 
@@ -442,11 +442,11 @@ namespace proiect_licenta.Migrations
                     b.Property<DateTime>("RequestDT")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("ReturnSum")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("Tx")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -498,8 +498,10 @@ namespace proiect_licenta.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("EditDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("PostDate")
                         .HasColumnType("datetime(6)");
@@ -508,7 +510,6 @@ namespace proiect_licenta.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("AppId", "UserId");

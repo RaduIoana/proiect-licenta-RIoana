@@ -19,7 +19,7 @@ public class PayRecordController : ControllerBase
         _paymentRecordService = paymentRecordService;
     }
     
-    [HttpGet("get_user_payRecords")]
+    [HttpGet("get_payRecords/user")]
     public async Task<ActionResult<IEnumerable<PaymentRecord>>> GetUserPaymentRecords()
     {
         return Ok(await _paymentRecordService.GetUserPaymentRecords());
@@ -31,6 +31,7 @@ public class PayRecordController : ControllerBase
         return Ok(await _paymentRecordService.GetPaymentRecord(id));
     }
 
+    [Authorize(Roles = "ADMIN")]
     [HttpPut]
     public async Task<ActionResult<PostPaymentRecordResponseDTO>> PutPaymentRecord(PaymentRecord payRecord)
     {
@@ -43,6 +44,7 @@ public class PayRecordController : ControllerBase
         return Ok(await _paymentRecordService.CreatePaymentRecord(payRecord));
     }
 
+    [Authorize(Roles = "ADMIN")]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeletePaymentRecord(int id)
     {

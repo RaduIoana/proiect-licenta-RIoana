@@ -4,16 +4,18 @@ async function main() {
     const [deployer] = await hre.ethers.getSigners(); // Get deployer wallet
 
     console.log(`Deploying contract with account: ${deployer.address}`);
-
-    const unlockTime = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
-
-    // Deploy contract with unlockTime
-    const BuyApp = await hre.ethers.getContractFactory("BuyApp");
-    const buyapp = await BuyApp.deploy();
-
-    await buyapp.waitForDeployment();
-
-    console.log(`BuyApp deployed to: ${await buyapp.getAddress()}`);
+    
+    const LicenseService = await hre.ethers.getContractFactory("LicenseService");
+    const licenseservice = await LicenseService.deploy();
+    await licenseservice.waitForDeployment();
+    console.log(`LicenseService deployed to: ${await licenseservice.getAddress()}`);
+    
+    const AppStore = await hre.ethers.getContractFactory("AppStore");
+    const appstore = await AppStore.deploy(
+        await licenseservice.getAddress()
+    );
+    await appstore.waitForDeployment();
+    console.log(`AppStore deployed to: ${await appstore.getAddress()}`);
 }
 
 main().catch((error) => {

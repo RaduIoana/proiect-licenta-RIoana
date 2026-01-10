@@ -34,7 +34,6 @@ public class AppController : ControllerBase
                 Description = Summaries[index],
                 Price = index,
                 LaunchDate = DateTime.Now.AddDays(index),
-                Rating = index,
                 Discount = 50
             })
             .ToArray();
@@ -54,6 +53,13 @@ public class AppController : ControllerBase
         return Ok(await _appService.GetApp(id));
     }
 
+    [AllowAnonymous]
+    [HttpGet("rating/{id}")]
+    public async Task<ActionResult<float>> GetRating(int id)
+    {
+        return Ok(await _appService.GetAppRating(id));
+    }
+
     [Authorize]
     [HttpGet("appInLibraryCheck/{id}")]
     public async Task<Boolean> AppInLibraryCheck(int id)
@@ -61,21 +67,23 @@ public class AppController : ControllerBase
         return await _appService.AppOwned(id);
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN, DEVELOPER")]
     [HttpPut]
     public async Task<ActionResult<App>> PutApp(App app)
     {
         return Ok(await _appService.EditApp(app));
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN, DEVELOPER")]
     [HttpPost]
     public async Task<ActionResult<App>> PostApp(App app)
     {
+        Console.WriteLine($"App received: {System.Text.Json.JsonSerializer.Serialize(app)}");
+
         return Ok(await _appService.CreateApp(app));
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN, DEVELOPER")]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteApp(int id)
     {

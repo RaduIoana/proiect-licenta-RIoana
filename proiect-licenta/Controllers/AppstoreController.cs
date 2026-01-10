@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Ipfs.Http;
+using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Models;
 using proiect_licenta.Services;
 
@@ -9,10 +10,12 @@ namespace proiect_licenta.Controllers;
 public class AppstoreController : ControllerBase
 {
     private readonly AppstoreService _appstoreService;
+    private readonly IpfsClient _ipfsClient;
     
-    public AppstoreController(AppstoreService appstoreService)
+    public AppstoreController(AppstoreService appstoreService, IpfsClient ipfsClient)
     {
         _appstoreService = appstoreService;
+        _ipfsClient = ipfsClient;
     }
 
     [HttpGet("install/{appId}")]
@@ -36,5 +39,12 @@ public class AppstoreController : ControllerBase
     public async Task<ActionResult<double>> GetAppPrice(int appId)
     {
         return Ok(await _appstoreService.CalculateAppPrice(appId));
+    }
+
+    [HttpGet("ipfs")]
+    public async Task<ActionResult> IpfsSanity()
+    {
+        await _ipfsClient.VersionAsync();
+        return Ok();
     }
 }

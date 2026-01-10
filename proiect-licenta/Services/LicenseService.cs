@@ -11,6 +11,7 @@ using Nethereum.Web3;
 using Newtonsoft.Json.Linq;
 using proiect_licenta.Contexts;
 using proiect_licenta.DTOs;
+using proiect_licenta.Exceptions;
 using proiect_licenta.Models;
 using proiect_licenta.Server.Enums;
 
@@ -43,19 +44,6 @@ public class LicenseService
         public BigInteger AppId { get; set; }
     }
     
-    [Function("mintLicense", "uint256")]
-    public class MintLicenseFunction : FunctionMessage
-    {
-        [Parameter("address", "buyer", 1)]
-        public string Buyer { get; set; }
-
-        [Parameter("uint256", "appId", 2)]
-        public BigInteger AppId { get; set; }
-
-        [Parameter("string", "tokenURI", 3)]
-        public string TokenURI { get; set; }
-    }
-    
     public async Task<decimal> GetBalanceAsync(string walletAddress)
     {
         if (string.IsNullOrWhiteSpace(walletAddress))
@@ -67,6 +55,8 @@ public class LicenseService
 
     public async Task<License> CreateLicenseAsync(PaymentRecord record)
     {
+        await _ipfsClient.VersionAsync();
+        
         var app = await _context.Apps.FindAsync(record.AppId);
         var user = await _context.Users.FindAsync(record.UserId);
         var licenseMetadata = new LicenseDto
@@ -84,7 +74,7 @@ public class LicenseService
                 new() { TraitType = "LicenseType", Value = "Lifetime" }
             ]
         };
-        Console.WriteLine("metadata:" + licenseMetadata.ToString());
+        Console.WriteLine("metadata:" + licenseMetadata);
         var cid = await UploadLicenseAsync(licenseMetadata);
         
         // license must have token id set later
@@ -98,7 +88,7 @@ public class LicenseService
             IpfsUri = cid,
             WalletAddress = user.WalletAddress
         };
-        Console.WriteLine("license:" + license.ToString());
+        Console.WriteLine("license:" + license);
         _context.Licenses.Add(license);
         await _context.SaveChangesAsync();
         
@@ -125,13 +115,16 @@ public class LicenseService
 
     public async Task<MintLicenseResponseDto> MintLicenseAsync(int licenseId)
     {
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
+        await _ipfsClient.VersionAsync();
+        
+        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
+        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData =
-            JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/BuyApp.sol/BuyApp.json"));
+            JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/LicenseService.sol/LicenseService.json"));
 
         var abi = contractData["abi"].ToString();
-        var contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // this is local addr
+        //var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR__LOCAL");
+        var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR");
 
         var license = await _context.Licenses.FindAsync(licenseId);
         if (license == null)
@@ -201,6 +194,8 @@ public class LicenseService
 
     public async Task<MintLicenseResponseDto> MintFreeLicenseAsync(int appId)
     {
+        await _ipfsClient.VersionAsync();
+        
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
@@ -285,5 +280,39 @@ public class LicenseService
             Success = true,
             TxHash = license.Tx
         };
+    }
+    
+    public async Task RevokeLicenseAsync(string userId, PaymentRecord paymentRecord)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User Not Found");
+        
+        var license = await _context.Licenses.FindAsync(paymentRecord.LicenseId);
+        if (license == null)
+            throw new NotFoundException("License not found.");
+        
+        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
+        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
+        var contractData =
+            JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/LicenseService.sol/LicenseService.json"));
+
+        var abi = contractData["abi"].ToString();
+        //var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR__LOCAL");
+        var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR");
+        
+        var contract = _web3.Eth.GetContract(abi, contractAddress);
+        var revokeLicenseFunction = contract.GetFunction("revokeLicense");
+        var receipt = await revokeLicenseFunction.SendTransactionAndWaitForReceiptAsync(
+            from: _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(600000),
+            value: null,
+            functionInput: [user.WalletAddress, license.AppId]
+        );
+        Console.WriteLine("revokeLicense:" + receipt.TransactionHash);
+        
+        license.Revoked = true;
+        _context.Entry(license).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
     }
 }

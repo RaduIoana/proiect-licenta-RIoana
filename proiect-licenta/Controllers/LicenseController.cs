@@ -13,7 +13,6 @@ public class LicenseController : ControllerBase
 {
     private readonly LicenseService _service;
 
-
     public LicenseController(LicenseService service)
     {
         _service = service;

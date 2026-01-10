@@ -10,9 +10,8 @@ namespace proiect_licenta.Models
         public string Description { get; set; }
         //public int DevId { get; set; }
         public string? AppFileCid { get; set; }
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public DateTime LaunchDate { get; set; }
-        public float Rating { get; set; }
         public int Discount { get; set; }
 
         [JsonIgnore] public virtual AppFile? AppFile { get; set; }

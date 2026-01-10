@@ -38,24 +38,11 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .WithOne(af => af.App)
             .HasForeignKey<AppFile>(af => af.AppId);
 
-        // user - uservoucher - voucher relationship
-        modelBuilder.Entity<UserVoucher>()
-            .HasOne(t => t.User)
-            .WithMany(t => t.UserVouchers)
-            .HasForeignKey(t => t.UserId);
-
-        modelBuilder.Entity<UserVoucher>()
-            .HasOne(t => t.Voucher)
-            .WithMany(t => t.UserVouchers)
-            .HasForeignKey(t => t.VoucherId);
-
-
         // app - appcategory - category relationship
         modelBuilder.Entity<AppCategory>()
             .HasOne(t => t.App)
             .WithMany(t => t.AppCategories)
             .HasForeignKey(t => t.AppId);
-
         modelBuilder.Entity<AppCategory>()
             .HasOne(t => t.Category)
             .WithMany(t => t.AppCategories)
@@ -75,6 +62,16 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .WithOne(t => t.LibraryRecord)
             .HasForeignKey<LibraryRecord>(t => t.PaymentId);
         
+        // review relationship
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Reviews)
+            .HasForeignKey(r => r.UserId);
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.App)
+            .WithMany(a => a.Reviews)
+            .HasForeignKey(r => r.AppId);
+        
         // refund request relationship
         modelBuilder.Entity<RefundRequest>()
             .HasOne(t => t.User)
@@ -84,5 +81,15 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .HasOne(t => t.PaymentRecord)
             .WithOne(t => t.RefundRequest)
             .HasForeignKey<RefundRequest>(t => t.PaymentId);
+        
+        // user - uservoucher - voucher relationship
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(t => t.User)
+            .WithMany(t => t.UserVouchers)
+            .HasForeignKey(t => t.UserId);
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(t => t.Voucher)
+            .WithMany(t => t.UserVouchers)
+            .HasForeignKey(t => t.VoucherId);
     }
 }

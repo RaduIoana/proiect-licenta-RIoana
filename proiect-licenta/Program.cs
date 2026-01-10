@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
+using proiect_licenta;
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
 using proiect_licenta.Services;
@@ -29,15 +30,16 @@ var issuer = Environment.GetEnvironmentVariable("JWT__ISSUER");
 var audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE");
 
 // for on-chain testing:
-//var web3 = new Web3($"https://mainnet.infura.io/v3/{Environment.GetEnvironmentVariable("INFURA__API")}");
+var liveAcc = new Account(Environment.GetEnvironmentVariable("OWNER__ACCOUNT__KEY__LIVE"));
+var web3 = new Web3(liveAcc, $"https://sepolia.infura.io/v3/{Environment.GetEnvironmentVariable("INFURA__API")}");
 //for local testing:
-var localKey = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__KEY__LOCAL");
-var web3 = new Web3(new Account(localKey), "http://host.docker.internal:8545");
+//var localKey = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__KEY__LOCAL");
+//var web3 = new Web3(new Account(localKey), "http://host.docker.internal:8545");
 
-// check
-//var balance = await web3.Eth.GetBalance.SendRequestAsync(Environment.GetEnvironmentVariable("0xBa7661DC6603A6D2c1b4fF58d2F5675211C1A7D6"));
-//var etherAmount = Web3.Convert.FromWei(balance.Value);
-//Console.WriteLine($"Balance in Ether: {etherAmount}");
+// test connection
+var balance = await web3.Eth.GetBalance.SendRequestAsync(Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR"));
+var etherAmount = Web3.Convert.FromWei(balance);
+Console.WriteLine($"Balance in Ether: {etherAmount}");
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -46,6 +48,10 @@ builder.Services.AddHttpContextAccessor();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
@@ -62,7 +68,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddIdentity<MyUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders().AddApiEndpoints();
+    .AddDefaultTokenProviders()
+    .AddApiEndpoints();
 
 var signingKey = new SymmetricSecurityKey(Convert.FromBase64String(key));
 
@@ -128,6 +135,15 @@ builder.Services.AddScoped<ExeService>();
 
 var app = builder.Build();
 
+var roleManager = app.Services.CreateScope()
+    .ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+if (!await roleManager.RoleExistsAsync("USER"))
+    await roleManager.CreateAsync(new IdentityRole("USER"));
+if (!await roleManager.RoleExistsAsync("DEVELOPER"))
+    await roleManager.CreateAsync(new IdentityRole("DEVELOPER"));
+if (!await roleManager.RoleExistsAsync("ADMIN"))
+    await roleManager.CreateAsync(new IdentityRole("ADMIN"));
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -140,6 +156,7 @@ app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseExceptionHandler();
 
 app.MapControllers();
 

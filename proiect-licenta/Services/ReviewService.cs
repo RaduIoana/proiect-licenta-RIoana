@@ -2,63 +2,195 @@
 using proiect_licenta.Contexts;
 using proiect_licenta.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using proiect_licenta.DTOs;
+using proiect_licenta.Exceptions;
 
-namespace proiect_licenta.Services
+namespace proiect_licenta.Services;
+
+public class ReviewService
 {
-    public class ReviewService
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<MyUser> _userManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public ReviewService(ApplicationDbContext context, UserManager<MyUser> userManager,
+        IHttpContextAccessor httpContextAccessor)
     {
-        // add  access checking
-        private readonly ApplicationDbContext _context;
-        //private readonly PrivilegeChecker _privilegeChecker;
-        //private readonly ClaimsPrincipal _user;
+        _context = context;
+        _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
-        public ReviewService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+    public async Task<IEnumerable<ReviewResponseDto>> GetAllReviews()
+    {
+        var reviews = await _context.Reviews.Include(r => r.User)
+            .ToListAsync();
+        var reviewReturns = new List<ReviewResponseDto>();
+
+        foreach (var review in reviews)
         {
-            _context = context;
+            reviewReturns.Add(new ReviewResponseDto
+            {
+                AppId = review.AppId,
+                Username = review.User.UserName,
+                Rating = review.Rating,
+                Title = review.Title,
+                Content = review.Content,
+                PostDate = review.PostDate,
+                EditDate = review.EditDate
+            });
         }
+            
+        return reviewReturns;
+    }
 
-        public async Task<IEnumerable<Review>> GetAllReviews()
+    public async Task<IEnumerable<ReviewResponseDto>> GetReviewsByAppId(int appId)
+    {
+        var reviews = await _context.Reviews.Where(r => r.AppId == appId)
+            .Include(r => r.User).ToListAsync();
+        var reviewReturns = new List<ReviewResponseDto>();
+            
+        foreach (var review in reviews)
         {
-            var reviews = await _context.Reviews
-                .ToListAsync();
-            return reviews;
+            reviewReturns.Add(new ReviewResponseDto
+            {
+                AppId = review.AppId,
+                Username = review.User.UserName,
+                Rating = review.Rating,
+                Title = review.Title,
+                Content = review.Content,
+                PostDate = review.PostDate,
+                EditDate = review.EditDate
+            });
         }
+        
+        if (reviewReturns.Count == 0)
+            throw new NotFoundException("No reviews found.");
 
-        public async Task<Review> GetReview(int id)
+        return reviewReturns;
+    }
+
+    public async Task<ReviewResponseDto> GetOwnReview(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException("Unauthorized");
+            
+        var review = await _context.Reviews.Where(r => r.AppId == appId && r.UserId == userId)
+            .Include(r => r.User).FirstOrDefaultAsync();
+        if (review == null)
+            throw new NotFoundException("Review not found");
+        return new ReviewResponseDto
         {
-            var review = await _context.Reviews.FindAsync(id);
-            if (review == null) { throw new Exception(); }
-            return review;
-        }
-
-        public async Task<Review> CreateReview(Review review)
+            AppId = review.AppId,
+            Username = review.User.UserName,
+            Rating = review.Rating,
+            Title = review.Title,
+            Content = review.Content,
+            PostDate = review.PostDate,
+            EditDate = review.EditDate
+        };
+    }
+        
+    public async Task<Boolean> ReviewExists(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException("Unauthorized");
+            
+        var review = await _context.Reviews.Where(r => r.AppId == appId && r.UserId == userId).FirstOrDefaultAsync();
+        if (review == null)
         {
-            _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
-            return review;
+            return false;
         }
+        return true;
+    }
 
-        public async Task<Review> EditReview(Review review)
+    public async Task<ReviewResponseDto> CreateReview(ReviewRequestDto reviewRequest, int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException("Unauthorized");
+
+        // fix ef usermanager bug
+        _context.Attach(user);
+        var review = new Review
         {
-            //idk
-            //check privilege
-            var existingReview = await _context.Reviews.FindAsync(review.UserId);
-            if (existingReview == null)
-                throw new Exception("Review does not exist");
-
-            _context.Entry(review).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return review;
-        }
-
-        public async Task DeleteReview(int id)
+            AppId = appId,
+            UserId = user.Id,
+            Rating = reviewRequest.Rating,
+            PostDate = DateTime.Now,
+            Title = reviewRequest.Title,
+            Content = reviewRequest.Content,
+        };
+            
+        _context.Reviews.Add(review);
+        await _context.SaveChangesAsync();
+        return new ReviewResponseDto
         {
-            var review = await _context.Reviews.FindAsync(id);
-            if (review == null)
-                throw new Exception("Review does not exist");
+            Content = review.Content,
+            Username = user.UserName,
+            Rating = review.Rating,
+            PostDate = review.PostDate,
+            Title = review.Title,
+            AppId = review.AppId
+        };
+    }
 
-            _context.Reviews.Remove(review);
-            await _context.SaveChangesAsync();
-        }
+    public async Task<ReviewResponseDto> EditReview(ReviewRequestDto reviewRequest, int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException("Unauthorized");
+            
+        var existingReview = await _context.Reviews
+            .Include(r => r.User)
+            .Where(r => r.AppId == appId && r.UserId == userId)
+            .FirstOrDefaultAsync();
+        if (existingReview == null)
+            throw new NotFoundException("Review not found");
+            
+        if (existingReview.UserId != userId || !_userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+            throw new ForbiddenException("Forbidden");
+
+        existingReview.Rating = reviewRequest.Rating;
+        existingReview.Title = reviewRequest.Title;
+        existingReview.Content = reviewRequest.Content;
+        existingReview.EditDate = DateTime.Now;
+        _context.Entry(existingReview).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+            
+        return new ReviewResponseDto
+        {
+            Content = existingReview.Content,
+            Username = existingReview.User.UserName,
+            Rating = existingReview.Rating,
+            PostDate = existingReview.PostDate,
+            Title = existingReview.Title,
+            AppId = existingReview.AppId
+        };
+    }
+
+    public async Task DeleteReview(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException("Unauthorized");
+            
+        var review = await _context.Reviews.Where(r => r.AppId == appId && r.UserId == userId).FirstOrDefaultAsync();
+        if (review == null)
+            throw new NotFoundException("Review not found");
+            
+        if (review.UserId != userId || !_userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+            throw new ForbiddenException("Forbidden");
+
+        _context.Reviews.Remove(review);
+        await _context.SaveChangesAsync();
     }
 }

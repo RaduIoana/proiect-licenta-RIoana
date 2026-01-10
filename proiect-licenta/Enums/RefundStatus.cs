@@ -1,9 +1,8 @@
-﻿namespace proiect_licenta.Server.Enums
+﻿namespace proiect_licenta.Enums;
+
+public enum RefundStatus
 {
-    public enum RefundStatus
-    {
-        Received,
-        Processing,
-        Complete
-    }
+    Processing,
+    Complete,
+    Denied
 }

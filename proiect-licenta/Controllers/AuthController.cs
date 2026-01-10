@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
+using proiect_licenta.DTOs;
 using proiect_licenta.Services;
 
 namespace proiect_licenta.Controllers;
@@ -20,7 +22,7 @@ public class AuthController : ControllerBase
     
     [HttpPost("register")]
     [Consumes("application/json")]
-    public async Task<ActionResult> Register([FromBody] RegisterRequest registerRequest)
+    public async Task<ActionResult> Register([FromBody] RegisterRequestDTO registerRequest)
     {
         return Ok(new { token = await _authService.Register(registerRequest)});
     }

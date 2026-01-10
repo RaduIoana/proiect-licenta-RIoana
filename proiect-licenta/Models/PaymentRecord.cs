@@ -13,6 +13,7 @@ namespace proiect_licenta.Models
         public int? LicenseId { get; set; }
         public DateTime PaymentDT { get; set; }
         public PaymentType PaymentType { get; set; }
+        public decimal? PaymentAmount { get; set; }
         public string? Tx { get; set; }
         public string status { get; set; } = "pending";
         [JsonIgnore] public virtual App App { get; set; }

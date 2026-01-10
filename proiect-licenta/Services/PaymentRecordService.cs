@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using Ipfs.Http;
 using Microsoft.EntityFrameworkCore;
+using Nethereum.Util;
 using Nethereum.Web3;
 using proiect_licenta.Contexts;
 using proiect_licenta.DTOs;
@@ -11,22 +12,20 @@ namespace proiect_licenta.Services;
 
 public class PaymentRecordService
 {
-    // add  access checking
     private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly Web3 _web3;
     private readonly LicenseService _licenseService;
-
-    //private readonly PrivilegeChecker _privilegeChecker;
-    //private readonly ClaimsPrincipal _user;
+    private readonly IpfsClient _ipfsClient;
 
     public PaymentRecordService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor,
-        Web3 web3, LicenseService licenseService)
+        Web3 web3, LicenseService licenseService, IpfsClient ipfsClient)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _web3 = web3;
         _licenseService = licenseService;
+        _ipfsClient = ipfsClient;
     }
 
     public async Task<IEnumerable<PaymentRecord>> GetUserPaymentRecords()
@@ -36,7 +35,7 @@ public class PaymentRecordService
         if (user == null)
             throw new Exception("User Not Found");
         var payRecords = await _context.PaymentRecords
-            .ToListAsync();
+            .Where(pr=> pr.UserId == userId).ToListAsync();
         return payRecords;
     }
 
@@ -100,7 +99,8 @@ public class PaymentRecordService
 
     public async Task<ConfirmPaymentResponseDto> ConfirmPaymentRecord(int id)
     {
-        Console.WriteLine("confirming payment record");
+        await _ipfsClient.VersionAsync();
+        
         var existingPaymentRecord = await _context.PaymentRecords.FindAsync(id);
         if (existingPaymentRecord == null)
             throw new Exception("Payment record does not exist");
@@ -109,8 +109,6 @@ public class PaymentRecordService
         if (userId == null)
             throw new Exception("User not found");
         var user = await _context.Users.FindAsync(userId);
-        
-        Console.WriteLine("user and record are correct");
         
         if (userId != existingPaymentRecord.UserId)
             throw new Exception("Current user not matching record. Verification failed.");
@@ -131,6 +129,10 @@ public class PaymentRecordService
         Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
 
         existingPaymentRecord.status = "success";
+        
+        var tx = await _web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(existingPaymentRecord.Tx);
+        existingPaymentRecord.PaymentAmount = UnitConversion.Convert.FromWei(tx.Value.Value);
+        
         await _context.SaveChangesAsync();
             
         //create license

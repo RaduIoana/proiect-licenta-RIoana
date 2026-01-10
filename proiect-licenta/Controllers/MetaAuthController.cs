@@ -12,7 +12,6 @@ namespace proiect_licenta.Controllers;
 public class MetaAuthController : ControllerBase
 {
     private readonly LicenseService _licenseService;
-    
     private readonly MetaAuthService _metaAuthService;
     
     public MetaAuthController(LicenseService licenseService, MetaAuthService metaAuthService)
@@ -78,6 +77,5 @@ public class MetaAuthController : ControllerBase
         
         return Unauthorized(new { success = false, message = "Authentication failed." });
     }
-
-    // some kind of validation endpoint
+    
 }

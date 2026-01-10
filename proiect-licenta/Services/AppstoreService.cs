@@ -8,11 +8,9 @@ namespace proiect_licenta.Services;
 
 public class AppstoreService
 {
-    // add  access checking
     private readonly ApplicationDbContext _context;
     private readonly AppService _appService;
     private readonly ExeService _exeService;
-    //private readonly PrivilegeChecker _privilegeChecker;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AppstoreService(ApplicationDbContext context, AppService appService,
@@ -68,7 +66,7 @@ public class AppstoreService
         Console.WriteLine("The app has been successfully uninstalled.");
     }
 
-    public async Task<double> CalculateAppPrice(int appId)
+    public async Task<decimal> CalculateAppPrice(int appId)
     {
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.Include(u => u.Libraries)

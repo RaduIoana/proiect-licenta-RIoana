@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using proiect_licenta.Contexts;
+using proiect_licenta.DTOs;
 using proiect_licenta.Models;
 
 namespace proiect_licenta.Services;
@@ -12,37 +13,43 @@ namespace proiect_licenta.Services;
 public class AuthService
 {
     private readonly ApplicationDbContext _context;
-    //private readonly PrivilegeChecker _privilegeChecker;
     private readonly UserManager<MyUser> _userManager;
     private readonly SignInManager<MyUser> _signInManager;
-    private readonly ClaimsPrincipal _user;
         
     public AuthService(ApplicationDbContext context, UserManager<MyUser> userManager, SignInManager<MyUser> signInManager, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
-        _user = httpContextAccessor.HttpContext!.User;
     }
 
-    public async Task<string> Register(RegisterRequest registerRequest)
+    public async Task<string> Register(RegisterRequestDTO registerRequest)
     {
         var existingUser = await _userManager.FindByEmailAsync(registerRequest.Email);
         if (existingUser != null)
             throw new Exception("User already exists");
             
-        var user = new MyUser { UserName = registerRequest.Email, Email = registerRequest.Email };
+        var user = new MyUser { UserName = registerRequest.UserName, Email = registerRequest.Email };
         var result = _userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Result.Succeeded)
         {
             throw new Exception("Failed to create user");
         }
-            
+
+        if (registerRequest.IsDeveloper)
+        {
+            await _userManager.AddToRoleAsync(user, "Developer");
+        }
+        else
+        {
+            await _userManager.AddToRoleAsync(user, "User");
+        }
+        
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim("name", user.UserName!),
+            new Claim("name", user.UserName)
         };
             
         var key = new SymmetricSecurityKey(Convert.FromBase64String(Environment.GetEnvironmentVariable("JWT__KEY")!));
@@ -62,11 +69,12 @@ public class AuthService
     {
         var user = await _userManager.FindByEmailAsync(loginRequest.Email);
         if (user == null)
-            return null;
+            throw new Exception("Invalid username or password");
             
         var result = await _signInManager.CheckPasswordSignInAsync(user, loginRequest.Password, false);
         if (!result.Succeeded)
-            return null;
+            throw new Exception("Invalid username or password");
+
             
         var roles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
