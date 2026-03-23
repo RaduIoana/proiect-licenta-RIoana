@@ -165,6 +165,11 @@ public class RefundService
         var refundRequest = await _context.RefundRequests.FindAsync(refundId);
         if (refundRequest == null)
             throw new NotFoundException("Refund request Not Found");
+
+        if (refundRequest.Status != RefundStatus.Processing)
+        {
+            throw new Exception("Refund already granted, or denied");
+        }
         
         var user = await _context.Users.Include(u => u.Libraries)
             .FirstOrDefaultAsync(u => u.Id == refundRequest.UserId);
@@ -176,16 +181,15 @@ public class RefundService
             .FirstOrDefaultAsync(p => p.Id == refundRequest.PaymentId);
         if (paymentRecord == null)
             throw new NotFoundException("Payment Not Found");
-        
-        Console.WriteLine("Id: " + paymentRecord.Id + "Amount: " + paymentRecord.PaymentAmount + "   Revoked? " + paymentRecord.License.Revoked);
-        
+
         if (paymentRecord.PaymentAmount is null || paymentRecord.License.Revoked)
+        {
+            refundRequest.Status = RefundStatus.Denied;
+            await _context.SaveChangesAsync();
             throw new Exception("Payment cannot be refunded.");
+        }
         
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/AppStore.sol/AppStore.json"));
-                
         var abi = contractData["abi"].ToString();
         //var contractAddress = Environment.GetEnvironmentVariable("APPSTORE__ADDR__LOCAL");
         var contractAddress  = Environment.GetEnvironmentVariable("APPSTORE__ADDR");
@@ -193,7 +197,6 @@ public class RefundService
         var contract = _web3.Eth.GetContract(abi, contractAddress);
         var refundAppFunction = contract.GetFunction("refundApp");
         
-        Console.WriteLine(new HexBigInteger(Web3.Convert.ToWei(paymentRecord.PaymentAmount ?? 0, UnitConversion.EthUnit.Wei)));
         var receipt = await refundAppFunction.SendTransactionAndWaitForReceiptAsync(
             from: _web3.TransactionManager.Account.Address,
             gas: new HexBigInteger(3000000),
@@ -201,8 +204,6 @@ public class RefundService
             functionInput: [paymentRecord.AppId, paymentRecord.User.WalletAddress]
         );
         // setting address to owner address is placeholder until implementing vendor accs
-        
-        Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
 
         var refundFinalization = receipt.DecodeAllEvents<RefundFinalizedEventDto>().FirstOrDefault();
         if (refundFinalization == null)
@@ -211,11 +212,12 @@ public class RefundService
         refundRequest.Status = RefundStatus.Complete;
         
         //revoke library record
-        var libraryRecord = user.Libraries.FirstOrDefault(l => l.UserId == user.Id && l.PaymentId == refundRequest.PaymentId);
-        user.Libraries.Remove(libraryRecord);
+        var libraryRecord = _context.Libraries.FirstOrDefault(l => l.UserId == user.Id && l.PaymentId == refundRequest.PaymentId);
+        _context.Libraries.Remove(libraryRecord);
         
         // revoke license
         await _licenseService.RevokeLicenseAsync(user.Id, paymentRecord);
+        paymentRecord.Status = "refunded";
 
         await _context.SaveChangesAsync();
         return refundRequest;

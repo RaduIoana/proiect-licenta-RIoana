@@ -30,6 +30,7 @@ services:
       sh -c "sleep 10 && dotnet proiect-licenta.dll"
     volumes:
           - 'C:/Users/Radu Ioana/RiderProjects/proiect-licenta/hardhatproj:/app/hardhatproj'
+          - 'C:/Users/Radu Ioana/RiderProjects/proiect-licenta/proiect-licenta:/app/wwwroot'
 
 volumes:
   mysql_data:

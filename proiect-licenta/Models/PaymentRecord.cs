@@ -1,7 +1,6 @@
 ﻿using proiect_licenta.Server.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using proiect_licenta.Models;
 
 namespace proiect_licenta.Models
 {
@@ -15,7 +14,7 @@ namespace proiect_licenta.Models
         public PaymentType PaymentType { get; set; }
         public decimal? PaymentAmount { get; set; }
         public string? Tx { get; set; }
-        public string status { get; set; } = "pending";
+        public string Status { get; set; } = "pending";
         [JsonIgnore] public virtual App App { get; set; }
         [JsonIgnore] public virtual MyUser User { get; set; }
         [JsonIgnore] public virtual License License { get; set; }

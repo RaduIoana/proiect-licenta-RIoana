@@ -18,32 +18,19 @@ public class AppController : ControllerBase
         _appService = appService;
     }
         
-    // dummies for frontend dev
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-        
     [AllowAnonymous]
-    [HttpGet("test")]
-    public async Task<ActionResult<IEnumerable<App>>> GetTestApps()
+    [HttpGet("get_apps")]
+    public async Task<ActionResult<IEnumerable<App>>> GetApps([FromQuery] int[]? categories, 
+        [FromQuery] string? sortBy, [FromQuery] string? order)
     {
-        return Enumerable.Range(1, 5).Select(index => new App
-            {
-                Name = "App" + index,
-                Description = Summaries[index],
-                Price = index,
-                LaunchDate = DateTime.Now.AddDays(index),
-                Discount = 50
-            })
-            .ToArray();
+        return Ok(await _appService.GetApps(categories, sortBy, order));
     }
-        
-    [AllowAnonymous]
-    [HttpGet("get_all_apps")]
-    public async Task<ActionResult<IEnumerable<App>>> GetAllApps()
+
+    [HttpGet("get_user_apps")]
+    public async Task<ActionResult<IEnumerable<App>>> GetUserApps([FromQuery] int[]? categories, 
+        [FromQuery] string? sortBy, [FromQuery] string? order)
     {
-        return Ok(await _appService.GetAllApps());
+        return Ok(await _appService.GetUserApps(categories, sortBy, order));
     }
 
     [AllowAnonymous]
@@ -60,11 +47,16 @@ public class AppController : ControllerBase
         return Ok(await _appService.GetAppRating(id));
     }
 
-    [Authorize]
     [HttpGet("appInLibraryCheck/{id}")]
     public async Task<Boolean> AppInLibraryCheck(int id)
     {
         return await _appService.AppOwned(id);
+    }
+
+    [HttpGet("isAppDeveloper/{id}")]
+    public async Task<Boolean> IsAppDeveloper(int id)
+    {
+        return await _appService.IsAppDeveloper(id);
     }
 
     [Authorize(Roles = "ADMIN, DEVELOPER")]

@@ -10,15 +10,15 @@ public class AppstoreService
 {
     private readonly ApplicationDbContext _context;
     private readonly AppService _appService;
-    private readonly ExeService _exeService;
+    private readonly FileService _fileService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AppstoreService(ApplicationDbContext context, AppService appService,
-        ExeService exeService, IHttpContextAccessor httpContextAccessor)
+        FileService fileService, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _appService = appService;
-        _exeService = exeService;
+        _fileService = fileService;
         _httpContextAccessor = httpContextAccessor;
     }
 
@@ -43,7 +43,7 @@ public class AppstoreService
         if(!await _appService.AppOwned(app.Id))
             throw new Exception("App is not owned.");
 
-        return await _exeService.DownloadFile(app.AppFile.Cid);
+        return await _fileService.DownloadFileFromIpfs(app.AppFile.Cid);
     }
 
     // this should mostly have the effect of removing from library

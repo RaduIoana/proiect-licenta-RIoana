@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using proiect_licenta.Contexts;
 
@@ -11,9 +12,11 @@ using proiect_licenta.Contexts;
 namespace proiect_licenta.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260221205028_paymentlicensealtermig")]
+    partial class paymentlicensealtermig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,32 +229,6 @@ namespace proiect_licenta.Migrations
                     b.ToTable("AppFiles");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Models.AppImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppId");
-
-                    b.ToTable("AppImages");
-                });
-
             modelBuilder.Entity("proiect_licenta.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -435,16 +412,16 @@ namespace proiect_licenta.Migrations
                     b.Property<int>("PaymentType")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Tx")
                         .HasColumnType("longtext");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -663,17 +640,6 @@ namespace proiect_licenta.Migrations
                     b.Navigation("App");
                 });
 
-            modelBuilder.Entity("proiect_licenta.Models.AppImage", b =>
-                {
-                    b.HasOne("proiect_licenta.Models.App", "App")
-                        .WithMany("AppImages")
-                        .HasForeignKey("AppId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("App");
-                });
-
             modelBuilder.Entity("proiect_licenta.Models.LibraryRecord", b =>
                 {
                     b.HasOne("proiect_licenta.Models.App", "App")
@@ -818,8 +784,6 @@ namespace proiect_licenta.Migrations
                     b.Navigation("AppCategories");
 
                     b.Navigation("AppFile");
-
-                    b.Navigation("AppImages");
 
                     b.Navigation("Libraries");
 

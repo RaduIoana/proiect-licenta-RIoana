@@ -39,12 +39,12 @@ public class MetaAuthController : ControllerBase
     }
 
     [HttpGet("getWallet")]
-    public async Task<ActionResult<string>> GetWalletAddress()
+    public async Task<ActionResult<string>> GetUserWalletAddress()
     {
-        return Ok(await _metaAuthService.GetWalletAddress());
+        return Ok(await _metaAuthService.GetUserWalletAddress());
     }
 
-    // for testing on local hardhat node only; no need to call from frontend
+    // for testing on local hardhat node only, no need to call from frontend
     [HttpPut("setWallet")]
     public async Task<ActionResult> SetWallet(string walletAddress)
     {

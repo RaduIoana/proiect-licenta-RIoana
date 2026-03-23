@@ -27,4 +27,11 @@ public class LibraryController : ControllerBase
     {
         return Ok(await _service.CreateLibraryRecord(library));
     }
+
+    [HttpDelete("{appId}")]
+    public async Task<ActionResult> DeleteLibrary(int appId)
+    {
+        await _service.DeleteLibraryRecord(appId);
+        return NoContent();
+    }
 }

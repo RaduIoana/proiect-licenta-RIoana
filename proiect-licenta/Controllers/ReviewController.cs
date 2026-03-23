@@ -39,6 +39,7 @@ public class ReviewController : ControllerBase
         return Ok(await _reviewService.GetOwnReview(appId));
     }
     
+    [AllowAnonymous]
     [HttpGet("exists/{appId}")]
     public async Task<Boolean> ReviewExists(int appId)
     {

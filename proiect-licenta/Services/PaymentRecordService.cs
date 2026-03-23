@@ -48,7 +48,6 @@ public class PaymentRecordService
 
     public async Task<PostPaymentRecordResponseDTO> CreatePaymentRecord(PostPaymentRecordRequestDTO request)
     {
-        Console.WriteLine("create payment record");
         PaymentRecord payRecord = new PaymentRecord
         {
             UserId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier),
@@ -119,7 +118,7 @@ public class PaymentRecordService
         {
             Console.WriteLine("receipt failed");
             Console.WriteLine($"receipt: {receipt.Status.Value} - {receipt.From} vs user: {user.WalletAddress}");
-            existingPaymentRecord.status = "failed";
+            existingPaymentRecord.Status = "failed";
             await _context.SaveChangesAsync();
             return new ConfirmPaymentResponseDto
             {
@@ -128,13 +127,25 @@ public class PaymentRecordService
         }
         Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
 
-        existingPaymentRecord.status = "success";
+        existingPaymentRecord.Status = "success";
         
         var tx = await _web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(existingPaymentRecord.Tx);
         existingPaymentRecord.PaymentAmount = UnitConversion.Convert.FromWei(tx.Value.Value);
         
         await _context.SaveChangesAsync();
-            
+
+        var existingLicense = await _context.Licenses.Where(l => l.AppId == existingPaymentRecord.AppId)
+            .FirstOrDefaultAsync();
+        if (existingLicense != null)
+        {
+            return new ConfirmPaymentResponseDto
+            {
+                IpfsUri = existingLicense.IpfsUri,
+                LicenseId = existingLicense.Id,
+                Success = true
+            };
+        }
+        
         //create license
         var license = await _licenseService.CreateLicenseAsync(existingPaymentRecord);
         return new ConfirmPaymentResponseDto

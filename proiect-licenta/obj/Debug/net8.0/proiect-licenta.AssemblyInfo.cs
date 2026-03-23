@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("proiect-licenta")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+465e1bbe23f2aab0ea1d965c38ae9427050683a1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e04c6d2db8bb710d002ff67d5cdac0b5bcb18dc4")]
 [assembly: System.Reflection.AssemblyProductAttribute("proiect-licenta")]
 [assembly: System.Reflection.AssemblyTitleAttribute("proiect-licenta")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

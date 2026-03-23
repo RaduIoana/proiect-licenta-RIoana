@@ -7,29 +7,87 @@ using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Newtonsoft.Json.Linq;
 using proiect_licenta.Exceptions;
+using Microsoft.AspNetCore.Identity;
 
 namespace proiect_licenta.Services;
 
 public class AppService
 {
-    // add  access checking
     private readonly ApplicationDbContext _context;
-    //private readonly PrivilegeChecker _privilegeChecker;
     private readonly Web3 _web3;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly UserManager<MyUser> _userManager;
 
-    public AppService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor, Web3 web3)
+    public AppService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor,
+        Web3 web3, UserManager<MyUser> userManager)
     {
         _httpContextAccessor = httpContextAccessor;
         _context = context;
         _web3 = web3;
+        _userManager = userManager;
     }
 
-    public async Task<IEnumerable<App>> GetAllApps()
+    public async Task<IEnumerable<App>> GetApps(int[]? categories, string? sortBy, string? order)
     {
-        var apps = await _context.Apps
-            .ToListAsync();
-        return apps;
+        var query = _context.Apps.AsQueryable();
+
+        if (categories?.Length != 0)
+        {
+            query = query.Where(app =>
+                app.AppCategories
+                    .Where(ac => categories.Contains(ac.CategoryId))
+                    .Select(ac => ac.CategoryId).Distinct()
+                    .Count() == categories.Length
+            );
+        }
+        
+        query = sortBy switch
+        {
+            "Name" => order == "Descending" ? query.OrderByDescending(a => a.Name) : query.OrderBy(a => a.Name),
+            "Price" => order == "Descending" ? query.OrderByDescending(a => a.Price) : query.OrderBy(a => a.Price),
+            "Free" => query.Where(a => a.Price == 0),
+            "Launch-date" => order == "Descending" ? query.OrderByDescending(a => a.LaunchDate) : query.OrderBy(a => a.LaunchDate),
+            "Discount" => order == "Descending" ? query.OrderByDescending(a => a.Discount) : query.OrderBy(a => a.Discount),
+            _ => query
+        };
+
+        return await query.ToListAsync();
+    }
+
+    public async Task<IEnumerable<App>> GetUserApps(int[]? categories, string? sortBy, string? order)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Libraries)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User Not Found");
+        
+        var query = _context.Libraries
+            .Where(l => l.UserId == userId)
+            .Select(l => l.App)
+            .AsQueryable();
+        
+        if (categories?.Length != 0)
+        {
+            query = query.Where(app =>
+                app.AppCategories
+                    .Where(ac => categories.Contains(ac.CategoryId))
+                    .Select(ac => ac.CategoryId).Distinct()
+                    .Count() == categories.Length
+            );
+        }
+        
+        query = sortBy switch
+        {
+            "Name" => order == "Descending" ? query.OrderByDescending(a => a.Name) : query.OrderBy(a => a.Name),
+            "Price" => order == "Descending" ? query.OrderByDescending(a => a.Price) : query.OrderBy(a => a.Price),
+            "Free" => query.Where(a => a.Price == 0),
+            "Launch-date" => order == "Descending" ? query.OrderByDescending(a => a.LaunchDate) : query.OrderBy(a => a.LaunchDate),
+            "Discount" => order == "Descending" ? query.OrderByDescending(a => a.Discount) : query.OrderBy(a => a.Discount),
+            _ => query
+        };
+        
+        return query;
     }
 
     public async Task<App> GetApp(int id)
@@ -62,8 +120,9 @@ public class AppService
         var paymentRecord = await _context.PaymentRecords
             .FirstOrDefaultAsync(pay => pay.AppId == id 
                                         && pay.UserId == user.Id
-                                        && pay.LicenseId != null);
-        if (paymentRecord == null || paymentRecord.status != "success") { return false; }
+                                        && pay.LicenseId != null
+                                        && pay.Status != "refunded");
+        if (paymentRecord == null || paymentRecord.Status != "success") { return false; }
         
         var inLibrary = _context.Libraries.Any(inst => inst.UserId == userId && inst.AppId == id);
         if (!inLibrary) { return false; }
@@ -78,8 +137,28 @@ public class AppService
         return true;
     }
 
+    public async Task<Boolean> IsAppDeveloper(int id)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) { return false; }
+        
+        var app = _context.Apps.FindAsync(id).Result;
+        if (app == null) { return false; }
+
+        if (app.DevId == userId || _userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+            return true;
+        
+        return false;
+    }
+
     public async Task<App> CreateApp(App app)
     {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        
         var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
         //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/AppStore.sol/AppStore.json"));
@@ -91,6 +170,8 @@ public class AppService
         var func = _web3.Eth.GetContractQueryHandler<ExistsFunction>();
         bool exists = await func.QueryAsync<bool>(contractAddress, new ExistsFunction{Id = app.Id});
 
+        app.DevId = user.Id;
+
         _context.Apps.Add(app);
         await _context.SaveChangesAsync();
 
@@ -99,11 +180,6 @@ public class AppService
             // call contract with admin account and add app to mapping
             var contract = _web3.Eth.GetContract(abi, contractAddress);
             var addAppFunction = contract.GetFunction("addApp");
-
-            var balance = await _web3.Eth.GetBalance.SendRequestAsync(_web3.TransactionManager.Account.Address);
-            
-            Console.WriteLine("Balance in ETH: " + Web3.Convert.FromWei(balance));
-            Console.WriteLine("id: " + app.Id + "  price: " + app.Price + "  address:" + ownerAddress);
 
             var receipt = await addAppFunction.SendTransactionAndWaitForReceiptAsync(
                 from: _web3.TransactionManager.Account.Address,
@@ -120,9 +196,17 @@ public class AppService
 
     public async Task<App> EditApp(App app)
     {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        
         var existingApp = await _context.Apps.FindAsync(app.Id);
         if (existingApp == null)
             throw new Exception("App does not exist");
+        
+        if (existingApp.DevId != userId && !_userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+            throw new ForbiddenException("Forbidden");
             
         var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
         //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");

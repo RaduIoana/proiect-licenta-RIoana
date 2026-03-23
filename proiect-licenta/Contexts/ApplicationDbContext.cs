@@ -11,6 +11,7 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
     }
     
     public DbSet<AppFile> AppFiles { get; set; }
+    public DbSet<AppImage> AppImages { get; set; }
     public DbSet<App> Apps { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<AppCategory> AppCategories { get; set; }
@@ -37,6 +38,16 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .HasOne(a => a.AppFile)
             .WithOne(af => af.App)
             .HasForeignKey<AppFile>(af => af.AppId);
+        
+        modelBuilder.Entity<AppImage>()
+            .HasOne(a => a.App)
+            .WithMany(a => a.AppImages)
+            .HasForeignKey(a => a.AppId);
+        
+        modelBuilder.Entity<PaymentRecord>()
+            .HasOne(p => p.License)
+            .WithMany(l => l.PaymentRecords)
+            .HasForeignKey(p => p.LicenseId);
 
         // app - appcategory - category relationship
         modelBuilder.Entity<AppCategory>()

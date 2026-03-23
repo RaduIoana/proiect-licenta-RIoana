@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using proiect_licenta.Contexts;
 using proiect_licenta.DTOs;
+using proiect_licenta.Exceptions;
 using proiect_licenta.Models;
 
 namespace proiect_licenta.Services;
@@ -62,7 +63,7 @@ public class LibraryService
             UserId = userId,
             User = user,
             App = app,
-            PaymentRecord = paymentRecord,
+            PaymentRecord = paymentRecord
         };
 
         _context.Libraries.Add(newLibraryRecord);
@@ -71,11 +72,17 @@ public class LibraryService
         return libraryRecord;
     }
 
-    public async Task DeleteLibraryRecord(int id)
+    public async Task DeleteLibraryRecord(int appId)
     {
-        var libraryRecord = await _context.Libraries.FindAsync(id);
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found.");
+        
+        var libraryRecord = await _context.Libraries.Where(l => l.UserId == userId && l.AppId == appId)
+            .FirstOrDefaultAsync();
         if (libraryRecord == null)
-            throw new Exception("Install does not exist");
+            throw new NotFoundException("Library record does not exist");
 
         _context.Libraries.Remove(libraryRecord);
         await _context.SaveChangesAsync();

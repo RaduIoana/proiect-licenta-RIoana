@@ -8,13 +8,14 @@ namespace proiect_licenta.Models
         [Key] public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        //public int DevId { get; set; }
+        public string DevId { get; set; }
         public string? AppFileCid { get; set; }
         public decimal Price { get; set; }
         public DateTime LaunchDate { get; set; }
         public int Discount { get; set; }
 
         [JsonIgnore] public virtual AppFile? AppFile { get; set; }
+        [JsonIgnore] public virtual ICollection<AppImage> AppImages { get; set; } = new List<AppImage>();
         [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         [JsonIgnore] public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
         [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();

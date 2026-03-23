@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
+using proiect_licenta.Exceptions;
 
 namespace proiect_licenta.Services;
 
@@ -18,12 +17,12 @@ public class MetaAuthService
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public async Task<string> GetWalletAddress()
+    public async Task<string> GetUserWalletAddress()
     {
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
-            throw new Exception("User Not Found");
+            throw new NotFoundException("User Not Found");
         return user.WalletAddress;
     }
 
@@ -59,6 +58,4 @@ public class MetaAuthService
         user.WalletAddress = walletAddress;
         return await _context.SaveChangesAsync() > 0;
     }
-
-    // some kind of validation function for purchasing
 }

@@ -44,6 +44,16 @@ public class LicenseService
         public BigInteger AppId { get; set; }
     }
     
+    [Function("getLicense", "uint256")]
+    private class GetLicenseFunction : FunctionMessage
+    {
+        [Parameter("address", "user", 1)]
+        public string User { get; set; }
+
+        [Parameter("uint256", "appId", 2)]
+        public BigInteger AppId { get; set; }
+    }
+    
     public async Task<decimal> GetBalanceAsync(string walletAddress)
     {
         if (string.IsNullOrWhiteSpace(walletAddress))
@@ -74,7 +84,6 @@ public class LicenseService
                 new() { TraitType = "LicenseType", Value = "Lifetime" }
             ]
         };
-        Console.WriteLine("metadata:" + licenseMetadata);
         var cid = await UploadLicenseAsync(licenseMetadata);
         
         // license must have token id set later
@@ -88,9 +97,12 @@ public class LicenseService
             IpfsUri = cid,
             WalletAddress = user.WalletAddress
         };
-        Console.WriteLine("license:" + license);
+        Console.WriteLine("license:" + license.Id + ", " + license.PaymentId);
         _context.Licenses.Add(license);
         await _context.SaveChangesAsync();
+        
+        Console.WriteLine("Saved license id: " + license.Id);
+        Console.WriteLine("License count: " + await _context.Licenses.CountAsync());
         
         return license;
     }
@@ -113,12 +125,10 @@ public class LicenseService
         return license;
     }
 
-    public async Task<MintLicenseResponseDto> MintLicenseAsync(int licenseId)
+    public async Task<MintLicenseResponseDto> MintLicenseAsync(int licenseId, int paymentId)
     {
         await _ipfsClient.VersionAsync();
         
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData =
             JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/LicenseService.sol/LicenseService.json"));
 
@@ -133,7 +143,7 @@ public class LicenseService
                 Success = false,
                 Error = "License not found."
             };
-
+        
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
@@ -143,21 +153,47 @@ public class LicenseService
                 Error = "User not found."
             };
         
-
-        var func = _web3.Eth.GetContractQueryHandler<HasLicenseFunction>();
-        // check if user already has this license, so it won't be minted again
-        bool hasLicense = await func.QueryAsync<bool>(contractAddress, new HasLicenseFunction
+        var getFunc = _web3.Eth.GetContractQueryHandler<GetLicenseFunction>();
+        // if license is not 0, means it's not valid. so we reactivate it.
+        var getLicense = await getFunc.QueryAsync<int>(contractAddress, new GetLicenseFunction
         {
             User = user.WalletAddress,
             AppId = license.AppId
         });
 
+        Console.WriteLine("getLicense:" + getLicense);
+        
+        if (getLicense != 0)
+        {
+            await RevalidateLicenseAsync(userId, license, paymentId);
+            
+            return new MintLicenseResponseDto
+            {
+                Success = true,
+                TxHash = license.Tx
+            };
+        }
+
+        var hasFunc = _web3.Eth.GetContractQueryHandler<HasLicenseFunction>();
+        // check if user already has this license, so it won't be minted again
+        var hasLicense = await hasFunc.QueryAsync<bool>(contractAddress, new HasLicenseFunction
+        {
+            User = user.WalletAddress,
+            AppId = license.AppId
+        });
+
+        Console.WriteLine("HasLicense:" + hasLicense);
+        // this will fail if license validity is 0. (duhhh)
+        // this can still work in case another payment is made by mistake somehow.
+        // but for my "license exists, but is not valid" check, i only need to check if the licenses array value isn't 0.
         if (hasLicense)
+        {
             return new MintLicenseResponseDto
             {
                 Success = false,
-                Error = "License already owned."
+                Error = "License already exists."
             };
+        }
 
         var contract = _web3.Eth.GetContract(abi, contractAddress);
         var mintLicenseFunction = contract.GetFunction("mintLicense");
@@ -183,8 +219,8 @@ public class LicenseService
 
         var paymentRecord = await _context.PaymentRecords.FindAsync(license.PaymentId);
         paymentRecord.LicenseId = license.Id;
-        
         await _context.SaveChangesAsync();
+        
         return new MintLicenseResponseDto
         {
             Success = true,
@@ -212,7 +248,7 @@ public class LicenseService
                 Success = false,
                 Error = "App not found."
             };
-        if (app.Price == 0)
+        if (app.Price != 0)
             return new MintLicenseResponseDto
             {
                 Success = false,
@@ -222,7 +258,8 @@ public class LicenseService
         var paymentRecord = await _context.PaymentRecords
             .Where(p => p.AppId == appId 
              && p.UserId == userId 
-             && p.PaymentType == PaymentType.Free)
+             && p.PaymentType == PaymentType.Free
+             && p.Status != "refunded")
             .FirstOrDefaultAsync();
         if (paymentRecord == null)
             return new MintLicenseResponseDto
@@ -231,50 +268,29 @@ public class LicenseService
                 Error = "Error adding app to library."
             };
         
-        var libraryRecord = await _context.Libraries
-            .Where(l => l.AppId == appId
-             && l.UserId == userId
-             && l.PaymentId == paymentRecord.Id)
-            .FirstOrDefaultAsync();
-        if (libraryRecord == null)
+        var existingLicense = await _context.Licenses.FindAsync(paymentRecord.LicenseId);
+        if (existingLicense != null)
+        {
+            paymentRecord.LicenseId = existingLicense.Id;
+            await _context.SaveChangesAsync();
+            
             return new MintLicenseResponseDto
             {
-                Success = false,
-                Error = "Error adding app to library."
+                Success = true,
+                TxHash = existingLicense.Tx
             };
+        }
         
-        var licenseMetadata = new LicenseDto
-        {
-            Name = "License for app:" + app.Name,
-            Description = "License for app:" + paymentRecord.AppId,
-            AppId = paymentRecord.AppId,
-            WalletAddress = user.WalletAddress,
-            IssuedAt = DateTime.UtcNow,
-            Valid = true,
-            Attributes =
-            [
-                new() { TraitType = "AppId", Value = app.Id.ToString() },
-                new() { TraitType = "UserId", Value = user.Id },
-                new() { TraitType = "LicenseType", Value = "Lifetime" }
-            ]
-        };
-        var cid = await UploadLicenseAsync(licenseMetadata);
+        var license = await CreateLicenseAsync(paymentRecord);
         
-        var license = new License
-        {
-            Name = "License for app:" + app.Name,
-            Description = "License for app:" + paymentRecord.AppId,
-            AppId = app.Id,
-            PaymentId = paymentRecord.Id,
-            IpfsUri = cid,
-            IssuedAt = DateTime.Now,
-            WalletAddress = user.WalletAddress
-        };
-        Console.WriteLine("license:" + license);
-        _context.Licenses.Add(license);
-        
+        Console.WriteLine("\n");
+        Console.WriteLine("minting free license");
+        Console.WriteLine("\n");
+
         paymentRecord.LicenseId = license.Id;
+        paymentRecord.Status = "success";
         await _context.SaveChangesAsync();
+        
         return new MintLicenseResponseDto
         {
             Success = true,
@@ -292,8 +308,6 @@ public class LicenseService
         if (license == null)
             throw new NotFoundException("License not found.");
         
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData =
             JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/LicenseService.sol/LicenseService.json"));
 
@@ -311,6 +325,69 @@ public class LicenseService
         );
         Console.WriteLine("revokeLicense:" + receipt.TransactionHash);
         
+        license.Revoked = true;
+        _context.Entry(license).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+    }
+    
+    private async Task RevalidateLicenseAsync(string userId, License license, int paymentId)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User Not Found");
+        
+        var contractData =
+            JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/LicenseService.sol/LicenseService.json"));
+
+        var abi = contractData["abi"].ToString();
+        //var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR__LOCAL");
+        var contractAddress  = Environment.GetEnvironmentVariable("LICENSE__ADDR");
+        
+        var contract = _web3.Eth.GetContract(abi, contractAddress);
+        var revalidateLicenseFunction = contract.GetFunction("revalidateLicense");
+        var receipt = await revalidateLicenseFunction.SendTransactionAndWaitForReceiptAsync(
+            from: _web3.TransactionManager.Account.Address,
+            gas: new HexBigInteger(600000),
+            value: null,
+            functionInput: [user.WalletAddress, license.AppId]
+        );
+        Console.WriteLine("revalidateLicense:" + receipt.TransactionHash);
+
+        _context.Licenses.Attach(license);
+        license.Revoked = false;
+        
+        var paymentRecord = await _context.PaymentRecords.FindAsync(paymentId);
+        Console.WriteLine(paymentRecord.Id);
+        paymentRecord.LicenseId = license.Id;
+        license.PaymentId = paymentRecord.Id;
+        
+        await _context.SaveChangesAsync();
+        
+        Console.WriteLine("revalidateLicense:" + receipt.TransactionHash);
+    }
+
+    public async Task RevokeFreeLicenseAsync(int appId)
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new Exception("User Not Found");
+        
+        var existingPaymentRecord = await _context.PaymentRecords
+            .Include(p => p.License)
+            .Where(p => p.AppId == appId 
+                        && p.UserId == userId 
+                        && p.PaymentType == PaymentType.Free
+                        && p.Status != "refunded")
+            .FirstOrDefaultAsync();
+        if (existingPaymentRecord.PaymentAmount != 0 || existingPaymentRecord.License.Revoked)
+            throw new Exception("Cannot remove from library.");
+        
+        var license = await _context.Licenses.FindAsync(existingPaymentRecord.LicenseId);
+        if (license == null)
+            throw new NotFoundException("License not found.");
+        
+        existingPaymentRecord.Status = "refunded";
         license.Revoked = true;
         _context.Entry(license).State = EntityState.Modified;
         await _context.SaveChangesAsync();

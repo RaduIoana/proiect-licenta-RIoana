@@ -14,6 +14,8 @@ contract AppStore is Ownable{
         address vendor;
     }
     
+    mapping (address => uint256) withdrawals;
+    
     LicenseService public licenseService;
     
     mapping(uint256 => AppDetails) public apps;
@@ -57,8 +59,8 @@ contract AppStore is Ownable{
         require(app.vendor != address(0), "App not found");
         
         if(app.price > 0) {
-            require(msg.value == app.price, "Incorrect payment");
-            payable(app.vendor).transfer(msg.value);
+            require(msg.value >= app.price, "Incorrect payment");
+            withdrawals[app.vendor] += msg.value;
             emit PaymentFinalized(msg.sender, app.vendor, app.price);
         }
     }
@@ -70,10 +72,23 @@ contract AppStore is Ownable{
         
         if(app.price > 0){
             require(msg.value == app.price, "Incorrect payment");
-            payable(app.vendor).transfer(msg.value);
+            (bool sent, bytes memory data) = payable(originalBuyer).call{value: msg.value}("");
             licenseService.revokeLicense(originalBuyer, appId);
             
             emit RefundFinalized(msg.sender, originalBuyer, app.price);
         }
+    }
+    
+    receive() external payable{
+        
+    }
+    
+    function withdraw(){
+        require(withdrawals[msg.sender] > 0, "No funds to withdraw");
+        // sender in mapping si are fonduri disponibile
+        // vendorii trebuie sa aiba in interfata un buton de withdrawal
+        withdrawals[msg.sender] = 0;
+        (bool sent, bytes memory data) = payable(msg.sender).call{value: msg.value}("");
+        require(sent);
     }
 }

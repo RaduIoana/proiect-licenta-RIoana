@@ -26,6 +26,6 @@ public class License
     
     public bool Revoked { get; set; } = false;
     
-    [JsonIgnore] public virtual PaymentRecord? PaymentRecord { get; set; }
+    [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();
     [JsonIgnore] public virtual App? App { get; set; }
 }

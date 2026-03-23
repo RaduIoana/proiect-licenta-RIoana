@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
@@ -131,7 +132,8 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<UserAccService>();
 builder.Services.AddScoped<VoucherService>();
-builder.Services.AddScoped<ExeService>();
+builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
@@ -144,6 +146,10 @@ if (!await roleManager.RoleExistsAsync("DEVELOPER"))
 if (!await roleManager.RoleExistsAsync("ADMIN"))
     await roleManager.CreateAsync(new IdentityRole("ADMIN"));
 
+var fileProviderUrl = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+if (!Directory.Exists(fileProviderUrl))
+    Directory.CreateDirectory(fileProviderUrl);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -154,6 +160,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(fileProviderUrl),
+    RequestPath = ""
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseExceptionHandler();

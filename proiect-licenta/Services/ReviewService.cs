@@ -99,7 +99,7 @@ public class ReviewService
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
-            throw new UnauthorizedException("Unauthorized");
+            return false;
             
         var review = await _context.Reviews.Where(r => r.AppId == appId && r.UserId == userId).FirstOrDefaultAsync();
         if (review == null)

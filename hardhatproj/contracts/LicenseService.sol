@@ -33,7 +33,8 @@ contract LicenseService is ERC721URIStorage, Ownable{
     }
 
     function hasLicense(address user, uint256 appId) public view returns (bool) {
-        return _licenses[user][appId] != 0 && licenseValidity[user][appId];
+        bool check = (_licenses[user][appId] != 0) && licenseValidity[user][appId];
+        return check;
     }
 
     function getLicense(address user, uint256 appId) public view returns (uint256){
@@ -57,5 +58,10 @@ contract LicenseService is ERC721URIStorage, Ownable{
     function revokeLicense(address user, uint256 appId) public{
         require(_licenses[user][appId] != 0, "License doesn't exist");
         licenseValidity[user][appId] = false;
+    }
+    
+    function revalidateLicense(address user, uint256 appId) public{
+        require(_licenses[user][appId] != 0, "License doesn't exist");
+        licenseValidity[user][appId] = true;
     }
 }

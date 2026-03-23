@@ -30,10 +30,10 @@ public class LicenseController : ControllerBase
         return Ok(await _service.UploadLicenseAsync(license));
     }
     
-    [HttpGet("mint/{id}")]
-    public async Task<ActionResult<string>> MintLicense(int id)
+    [HttpGet("mint/{id}/{paymentId}")]
+    public async Task<ActionResult<string>> MintLicense(int id, int paymentId)
     {
-        return Ok(await _service.MintLicenseAsync(id));
+        return Ok(await _service.MintLicenseAsync(id, paymentId));
     }
 
     [HttpGet("mintFree/{appId}")]
@@ -46,5 +46,12 @@ public class LicenseController : ControllerBase
     public async Task<ActionResult<MintLicenseResponseDto>> GetLicense(string cid)
     {
         return Ok(await _service.GetLicenseAsync(cid));
+    }
+
+    [HttpDelete("revoke/free/{appId}")]
+    public async Task<ActionResult> RevokeFreeLicenseAsync(int appId)
+    {
+        await _service.RevokeFreeLicenseAsync(appId);
+        return NoContent();
     }
 }
