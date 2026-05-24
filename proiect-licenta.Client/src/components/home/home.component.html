@@ -1,0 +1,78 @@
+<div class="flex min-h-screen text-text dark-theme">
+    <aside class="w-64 bg-background p-4 border-r border-border">
+        <div class="mb-4">
+            <span class="text-lg font-semibold text-primary">Categories</span>
+        </div>
+        <nav>
+            <ol class="space-y-2">
+                <li *ngFor="let category of categories"
+                    class="border p-2 bg-surface border-border hover:bg-accent rounded"
+                    [ngClass]="{
+                      'bg-surface border-border hover:bg-accent rounded': !isSelected(category.id),
+                      'bg-accent border-border hover:bg-surface rounded': isSelected(category.id)
+                    }"
+                    (click)="selectCategory(category.id)"
+                >
+                    {{ category.name }}
+                </li>
+            </ol>
+        </nav>
+    </aside>
+
+    <div class="flex-1 p-6 bg-background border-accent">
+
+      <div class="flex flex-row">
+        <p-select
+          [options]="sortOptions"
+          [(ngModel)]="filters.sortBy"
+          placeholder="Sort by..."
+        />
+
+        <p-select
+          [options]="order"
+          [(ngModel)]="filters.order"
+          placeholder="Order"
+        />
+
+        <p-button
+          label="Filter"
+          severity="primary"
+          (click)="filterApps()"
+        />
+      </div>
+
+      <h1 class="text-xl font-semibold">Apps</h1>
+
+      <div class="flex flex-column flex-wrap justify-start">
+        <div *ngFor="let app of apps" class="m-3">
+
+          <div class="bg-zinc-700 text-text  rounded-xl p-4 flex flex-col gap-2"
+               [routerLink]="['/app', app.id]" style="cursor: pointer">
+
+            <div class="w-32 h-32 border-2 border-border rounded-md bg-background flex items-center justify-center">
+              <img [src]="'http://localhost:5152/' + app.icon?.path" alt="App icon" class="object-cover" />
+            </div>
+
+            <div class="text-lg font-bold">{{ app.name }}</div>
+
+            <div class="text-primary" *ngIf="app.discount != 0; else notDiscounted">
+              <s class="text-sky-300">{{app.price | number:'1.2-2'}}</s>
+              -{{app.discount ?? 0}}% ETH
+              <div>{{app.price - (app.discount ?? 0) * app.price / 100 | number:'1.2-2'}} ETH</div>
+            </div>
+            <ng-template #notDiscounted >
+              <div *ngIf="app.price != 0; else free">
+                {{ app.price }} ETH
+              </div></ng-template>
+            <ng-template #free>Free</ng-template>
+
+            <div class="text-sm text-accent">{{ app.launchDate | date: 'mediumDate'}}</div>
+            <div class="font-semibold">
+              <i class="pi pi-star-fill"></i>
+              {{ app.rating }}/5
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>

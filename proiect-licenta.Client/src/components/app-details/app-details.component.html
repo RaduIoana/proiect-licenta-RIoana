@@ -1,0 +1,130 @@
+<div class="flex flex-col min-h-screen bg-background text-text dark-theme">
+  <p-toast></p-toast>
+  <div class="px-4 py-2">
+    <p-button
+      label="Back"
+      icon="pi pi-chevron-left"
+      severity="primary"
+      (click)="navigateBack()"
+    ></p-button>
+    <p-button *ngIf="isAppOwner"
+      class="mx-2"
+      label="Edit app"
+      severity="primary"
+      (click)="editApp()"
+    ></p-button>
+  </div>
+
+  <h1 class="px-4 pb-2 text-xl">{{app.name}}</h1>
+
+  <div class="px-4 pb-2">
+    <img [src]="'http://localhost:5152' + this.app.icon?.path" alt="App icon"
+         class="w-32 h-32 object-cover border-2 border-border rounded-md" />
+  </div>
+
+  <div class="flex flex-row">
+    <!-- This is the container for button and app price -->
+    <div [ngSwitch]="appButtonType" class="px-4 pb-4">
+      <p-button
+        *ngSwitchCase="'install'"
+        label="Install"
+        severity="primary"
+        (click)="installApp()"
+      >
+      </p-button>
+
+      <p-button
+        *ngSwitchCase="'library'"
+        label="Add to library"
+        severity="primary"
+        (click)="addAppToLibrary()"
+      >
+      </p-button>
+
+      <p-button
+        *ngSwitchCase="'purchase'"
+        label="Purchase"
+        severity="primary"
+        (click)="purchaseApp()"
+        [disabled]="disablePurchaseButton"
+      >
+      </p-button>
+    </div>
+
+    <p-button
+      label="Remove from library"
+      severity="primary"
+      *ngIf="displayRemoveButton"
+      (click)="removeAppFromLibrary()"
+      [disabled]="disableRemoveButton"
+    >
+    </p-button>
+
+    <div class="py-2" *ngIf="app.price==0; else paidApp">Free</div>
+    <ng-template #paidApp>
+      <div class="flex flex-row">
+        <div class="text-primary py-2" *ngIf="app.discount != 0; else notDiscounted">
+          <s class="text-sky-300">{{app.price | number:'1.2-5'}}</s>
+          -{{app.discount ?? 0}}% ETH
+          <div>{{app.price - (app.discount ?? 0) * app.price / 100 | number:'1.2-5'}} ETH</div>
+        </div>
+        <ng-template #notDiscounted>{{ app.price }}</ng-template>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="flex flex-row px-4">
+    <p-rating [(ngModel)]="app.rating" [readonly]="true" (click)="promptReviewForm()"/>
+    <span class="px-2">({{app.rating}})</span>
+  </div>
+
+  <p-carousel class="flex-shrink-0 rounded-lg object-contain" [value]="images" [circular]="true" [numVisible]="3">
+    <ng-template let-image #item>
+      <img [src]="'http://localhost:5152/' + image.path" alt="App screenshot"
+           class="h-48 object-contain border-2 border-border rounded-lg shadow-md bg-background"
+
+           (click)="displayGallery(images.indexOf(image))"/>
+    </ng-template>
+  </p-carousel>
+
+  <p-galleria fullScreen [showItemNavigators]="true" circular
+      [value]="images" [(visible)]="galleryDisplay"
+      [showThumbnails]="false" [activeIndex]="galleryIndex">
+    <ng-template let-image #item>
+      <img [src]="'http://localhost:5152/' + image.path" alt="App screenshot" class="w-auto h-96"/>
+    </ng-template>
+  </p-galleria>
+
+  <div class="px-4" style="white-space: pre-line">{{app.description}}</div>
+
+  <p-button
+    label="{{reviewExists ? 'Edit review' : 'Review'}}"
+    severity="primary"
+    class="m-3"
+    (click)="promptReviewForm()"
+  >
+  </p-button>
+  <app-review-form [(display)]="reviewFormDisplay"></app-review-form>
+
+  <div *ngIf="reviewExists" class="m-3">
+    <p>My review</p>
+    <p>{{userReview?.title}}</p>
+    <p>{{userReview?.rating}}</p>
+    <p>{{userReview?.content}}</p>
+  </div>
+
+  <p-divider/>
+
+  <div *ngFor="let review of reviews" class="m-3">
+    <div>
+      <p-avatar label="{{review.username[0]}}" shape="circle"></p-avatar>
+      <p>{{review.username}}</p>
+      <p>{{review.postDate}}</p>
+      <p>{{review.editDate}}</p>
+      <p>{{review.rating}}</p>
+      <p>{{review.content}}</p>
+      <p-divider/>
+    </div>
+  </div>
+
+</div>

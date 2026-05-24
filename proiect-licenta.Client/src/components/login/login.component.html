@@ -1,0 +1,35 @@
+<p-dialog class="dark-mode bg-background text-text" [modal]="true" [(visible)]="display" [style]="{width: '30vw'}" (onHide)="hideDialog()">
+  <h2 class="text-2xl font-semibold text-center mb-6">Login</h2>
+
+  <form (ngSubmit)="login(loginForm)" [formGroup]="loginForm" class="flex flex-col justify-center items-center">
+    <div class="mb-4">
+      <label for="email" class="block text-sm font-medium">Email</label>
+      <input
+        formControlName="email"
+        type="text"
+        pInputText
+        id="email"
+        placeholder="Enter your email"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label for="password" class="block text-sm font-medium">Password</label>
+      <input
+        formControlName="password"
+        type="password"
+        pInputText
+        id="password"
+        placeholder="Enter your password"
+      />
+    </div>
+
+    <div class="mt-4">
+      <p-button type="submit">
+        Login
+      </p-button>
+    </div>
+  </form>
+
+  <p-toast></p-toast>
+</p-dialog>

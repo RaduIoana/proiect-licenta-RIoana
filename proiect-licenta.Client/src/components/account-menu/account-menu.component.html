@@ -1,0 +1,23 @@
+<p-button severity="primary" (click)="op.toggle($event)" label="My account"></p-button>
+<p-popover #op>
+  <div class="flex flex-col">
+    <app-metamask-login></app-metamask-login>
+    <p-button
+      label="Payment history"
+      variant="text"
+      severity="info"
+      [routerLink]="['payment-history']"
+    >
+    </p-button>
+
+    <p-button
+      label="Withdraw funds"
+      variant="text"
+      severity="info"
+      (click)="withdraw()"
+      [disabled]=isDisabled
+    ></p-button>
+  </div>
+</p-popover>
+
+<p-toast></p-toast>

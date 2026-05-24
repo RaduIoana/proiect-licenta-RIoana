@@ -1,0 +1,85 @@
+<header class="bg-surface text-text shadow-lg dark-theme">
+  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+
+    <div class="flex items-center space-x-4">
+      <h1 class="text-2xl font-semibold">App store</h1>
+
+      <p-button
+        label="Home"
+        variant="text"
+        severity="info"
+        (click)="navigateHome()"
+      >
+      </p-button>
+
+      <p-button
+        label="Library"
+        *ngIf="isLoggedIn"
+        variant="text"
+        severity="info"
+        (click)="navigateLibrary()"
+      >
+      </p-button>
+
+      <p-button
+        label="Create app"
+        *ngIf='hasRole("DEVELOPER") || hasRole("ADMIN")'
+        variant="text"
+        severity="info"
+        (click)="navigateCreateApp()"
+      >
+      </p-button>
+
+      <p-button
+        label="Create category"
+        *ngIf='hasRole("ADMIN")'
+        variant="text"
+        severity="info"
+        (click)="showCreateCategory()">
+      </p-button>
+
+      <p-button
+        label="Refund requests"
+        *ngIf='hasRole("ADMIN")'
+        variant="text"
+        severity="info"
+        (click)="navigateRefunds()"
+      >
+      </p-button>
+    </div>
+
+    <div class="flex space-x-4">
+      <p-button
+        label="Register"
+        *ngIf="!isLoggedIn"
+        icon="pi pi-id-card"
+        class="p-button-rounded p-button-outlined"
+        severity="primary"
+        (click)="showRegister()">
+      </p-button>
+      <p-button
+        label="Login"
+        *ngIf="!isLoggedIn"
+        icon="pi pi-user"
+        class="p-button-rounded p-button-outlined"
+        severity="primary"
+        (click)="showLogin()">
+      </p-button>
+      <p-button
+        label="Logout"
+        *ngIf="isLoggedIn"
+        icon="pi pi-sign-out"
+        class="p-button-rounded p-button-outlined"
+        severity="primary"
+        (click)="logout()">
+      </p-button>
+      <app-account-menu *ngIf="isLoggedIn"></app-account-menu>
+    </div>
+  </div>
+</header>
+
+<app-create-category [(display)]="displayCreateCategory"></app-create-category>
+
+<app-login [(display)]="displayLogin"></app-login>
+
+<app-register [(display)]="displayRegister"></app-register>

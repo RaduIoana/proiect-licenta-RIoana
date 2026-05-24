@@ -1,0 +1,9 @@
+<p-button
+  label="Connect Metamask"
+  icon="pi-ethereum"
+  variant="text"
+  severity="info"
+  (click)="connect()"
+  [disabled]=isDisabled>
+</p-button>
+<p *ngIf="messageDisplay">{{ messageDisplay }}</p>

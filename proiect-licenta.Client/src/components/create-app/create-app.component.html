@@ -1,0 +1,73 @@
+<div class="dark-theme text-text bg-background border-border">
+  <h2 class="text-2xl font-semibold text-center mb-6">Create App</h2>
+
+  <form (ngSubmit)="createApp(appForm)" [formGroup]="appForm" class="flex flex-col justify-center items-center">
+    <div class="mt-4">
+      <label for="name" class="block text-sm font-medium">App name</label>
+      <input
+        formControlName="name"
+        type="text"
+        pInputText
+        id="name"
+        size="50"
+      />
+    </div>
+
+    <div class="mt-4">
+      <label for="description" class="block text-sm font-medium">App description</label>
+      <textarea
+        formControlName="description"
+        type="text"
+        pInputText
+        id="description"></textarea>
+    </div>
+
+    <div class="mt-4">
+      <label for="price" class="block text-sm font-medium">App price (in ETH)</label>
+      <input
+        formControlName="price"
+        type="number"
+        pInputText
+        id="price"
+        min="0"
+        value="0"
+      />
+    </div>
+
+    <div class="mt-4">
+      <p-multiSelect [options]="availableCategories"
+                     optionLabel="name"
+                     optionValue="id"
+                     formControlName="selectedCategories"
+                     placeholder="Select categories..."
+      />
+    </div>
+
+    <div class="mt-4">
+      <div class="block text-sm font-medium">App icon</div>
+      <p-fileupload
+        mode="basic"
+        [customUpload]="true"
+        (onSelect)="onIconSelect($event)"
+        (onRemove)="onIconRemove()"
+      >
+      </p-fileupload>
+      <div class="block text-sm font-medium">Screenshots</div>
+      <p-fileupload
+        mode="advanced"
+        multiple
+        [customUpload]="true"
+        (onSelect)="onScreenshotSelect($event)"
+        (onRemove)="onScreenshotRemove($event)"
+      ></p-fileupload>
+    </div>
+
+    <div class="mt-4">
+      <p-button type="submit" severity="primary" [disabled]="disableButton">
+        Create app page
+      </p-button>
+    </div>
+  </form>
+</div>
+
+<p-toast></p-toast>

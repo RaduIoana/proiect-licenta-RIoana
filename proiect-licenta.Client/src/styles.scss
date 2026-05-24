@@ -1,0 +1,42 @@
+/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "primeicons/primeicons.css";
+
+:root{
+  --p-primary-50: #f0f9ff;    // sky-50
+  --p-primary-100: #e0f2fe;
+  --p-primary-200: #bae6fd;
+  --p-primary-300: #7dd3fc;
+  --p-primary-400: #38bdf8;
+  --p-primary-500: #0ea5e9;
+  --p-primary-600: #0284c7;
+  --p-primary-700: #0369a1;
+  --p-primary-800: #075985;
+  --p-primary-900: #0c4a6e;
+  --p-primary-950: #082f49;   // sky-950
+
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-hover-color: var(--p-primary-300);
+  --p-primary-active-color: var(--p-primary-700);
+}
+
+.dark-theme {
+
+  --p-surface-0: #18181b;
+  --p-surface-100: #52525b;
+
+  --p-surface-ground: var(--p-surface-0);
+  --p-surface-card: var(--p-surface-100);
+  --p-accent-color: #a1a1aa;
+  --p-text-color: #e5e7eb;
+  --p-border-color: #71717a;
+
+  --p-content-border-color: var(--p-border-color);
+
+  /* Rating */
+  --p-rating-icon-color: var(--p-border-color);
+  --p-rating-icon-active-color: var(--p-primary-color);
+  --p-highlight-color: var(--p-primary-color);
+}

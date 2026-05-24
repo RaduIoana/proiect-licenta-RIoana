@@ -1,0 +1,25 @@
+<div class="flex min-h-screen text-text">
+  <div class="flex-1 p-6 bg-background border-accent">
+    <h1 class="text-xl font-semibold">Payment history</h1>
+
+    <div class="flex flex-column flex-wrap justify-start">
+      <div *ngFor="let payment of payments" class="m-3">
+        <div class="bg-zinc-700 text-text  rounded-xl p-4 flex flex-row gap-2">
+          <div>{{payment.id}}</div>
+          <div>App: {{payment.appId}}</div>
+          <div>Date: {{payment.paymentDT}}</div>
+          <div>Amount: {{payment.paymentAmount}}</div>
+          <div *ngIf="payment.paymentType == 1; else free">Status: <p-tag [severity]="determineTagSeverity(payment.paymentStatus)" value="payment.paymentStatus" /></div>
+          <ng-template #free><p-tag severity="secondary" value="Free"/></ng-template>
+          <p-button
+            label="Request refund"
+            severity="primary"
+            [disabled]="payment.canRefund"
+            (click)="requestRefund(payment.id)"
+          >
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

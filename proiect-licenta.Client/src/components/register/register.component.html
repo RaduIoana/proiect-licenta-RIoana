@@ -1,0 +1,48 @@
+<p-dialog class="dark-mode bg-background text-text" [modal]="true" [(visible)]="display" [style]="{width: '30vw'}" (onHide)="hideDialog()">
+
+  <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Register</h2>
+
+  <form (ngSubmit)="register(registerForm)" [formGroup]="registerForm" class="flex flex-col justify-center items-center">
+    <div class="mb-4" >
+      <label for="email" class="block text-sm font-medium">Email</label>
+      <input
+        formControlName="email"
+        type="text"
+        pInputText
+        id="email"
+        placeholder="Enter your e-mail address"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label for="username" class="block text-sm font-medium">Username</label>
+      <input
+        formControlName="username"
+        type="text"
+        pInputText
+        id="username"
+        placeholder="Enter your username"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label for="password" class="block text-sm font-medium">Password</label>
+      <input
+        formControlName="password"
+        type="text"
+        pInputText
+        id="password"
+        placeholder="Enter your password"
+      />
+    </div>
+
+    <div class ="mb-4">
+      <p-checkbox id="developer" formControlName="isDeveloper" [binary]="true"></p-checkbox>
+      <label for="developer"> I am a developer </label>
+    </div>
+
+    <p-button type="submit">Register</p-button>
+  </form>
+  <p-toast></p-toast>
+
+</p-dialog>

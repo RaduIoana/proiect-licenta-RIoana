@@ -1,0 +1,24 @@
+<p-dialog class="dark-mode bg-background text-text" [modal]="true" [(visible)]="display" [style]="{width: '30vw'}" (onHide)="hideDialog()">
+  <h2 class="text-2xl font-semibold text-center mb-6">Create category</h2>
+
+  <form (ngSubmit)="createCategory(categoryForm)" [formGroup]="categoryForm" class="flex flex-col justify-center items-center">
+    <div class="mb-4">
+      <label for="name" class="block text-sm font-medium">Category name</label>
+      <input
+        formControlName="name"
+        type="text"
+        pInputText
+        id="name"
+      />
+    </div>
+
+    <div class="mt-4">
+      <p-button type="submit">
+        Submit
+      </p-button>
+    </div>
+  </form>
+
+  <p-toast></p-toast>
+</p-dialog>
+

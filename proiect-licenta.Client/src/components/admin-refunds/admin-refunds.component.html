@@ -1,0 +1,45 @@
+<div class="flex min-h-screen text-text dark-theme">
+  <div class="flex-1 p-6 bg-background border-accent">
+    <h1 class="text-xl font-semibold">Refunds</h1>
+
+    <p-table [value]="refunds">
+      <ng-template #header>
+        <tr>
+          <th>Id</th>
+          <th>PaymentId</th>
+          <th>PaymentType</th>
+          <th>Username</th>
+          <th>WalletAddress</th>
+          <th>Date</th>
+          <th>AppId</th>
+          <th>AppName</th>
+          <th>Sum</th>
+          <th>Status</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-refund>
+        <tr>
+          <td>{{refund.id}}</td>
+          <td>{{refund.paymentId}}</td>
+          <td>{{refund.paymentType}}</td>
+          <td>{{refund.username}}</td>
+          <td>{{refund.walletAddress}}</td>
+          <td>{{refund.requestDT | date:'medium'}}</td>
+          <td>{{refund.appId}}</td>
+          <td>{{refund.appName}}</td>
+          <td>{{refund.sum}} ETH</td>
+          <td><p-tag [severity]="determineTagSeverity(refund.status)" value="refund.status"></p-tag></td>
+          <td>
+            <p-button
+              label="Grant refund" severity="primary"
+              (click)="grantRefund(refund.id)" [disabled]="disableButton">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+  </div>
+</div>
+
+<p-toast></p-toast>

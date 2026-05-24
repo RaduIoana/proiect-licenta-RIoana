@@ -1,0 +1,42 @@
+<p-dialog [modal]="true" [(visible)]="display" [style]="{width: '50vw'}" (onHide)="hideDialog()">
+  <h2 class="text-2xl font-semibold text-center mb-6">Review</h2>
+
+  <p-button severity="danger" *ngIf="existing" (click)="this.deleteReview()">
+    Delete Review
+  </p-button>
+
+  <form (ngSubmit)="review(reviewForm)" [formGroup]="reviewForm" class="flex flex-col justify-center items-center">
+    <div class="mt-4">
+      <label for="rating">Rate</label>
+      <p-rating
+        formControlName="rating"
+        id="rating"
+        [stars]="5"
+      ></p-rating>
+    </div>
+
+    <div class="mt-4">
+      <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+      <input
+        formControlName="title"
+        type="text"
+        pInputText
+        id="title"
+        size="70"
+      />
+    </div>
+
+    <textarea class="mt-4" rows="10" cols="40" pTextarea formControlName="content" id="content"></textarea>
+
+    <div class="mt-4">
+      <p-button *ngIf="!existing" type="submit" severity="primary">
+        Submit review
+      </p-button>
+
+      <p-button *ngIf="existing" type="submit" severity="primary">
+        Edit review
+      </p-button>
+    </div>
+  </form>
+
+</p-dialog>
