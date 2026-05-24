@@ -36,8 +36,14 @@ public class FileController : ControllerBase
     [HttpPost("images/{type}/{appId}")]
     public async Task<IActionResult> UploadImagesToFilesystem(List<IFormFile> files, int appId, string type)
     {
-        Console.WriteLine("post image");
         return Ok(await _service.UploadImagesToFilesystem(files, appId, type));
+    }
+    
+    [Authorize(Roles = "ADMIN, DEVELOPER")]
+    [HttpPut("images/{type}/{appId}")]
+    public async Task<IActionResult> EditAppImages(List<IFormFile> files, int appId, string type)
+    {
+        return Ok(await _service.EditAppImages(files, appId, type));
     }
 
     [AllowAnonymous]

@@ -185,7 +185,7 @@ public class LicenseService
         Console.WriteLine("HasLicense:" + hasLicense);
         // this will fail if license validity is 0. (duhhh)
         // this can still work in case another payment is made by mistake somehow.
-        // but for my "license exists, but is not valid" check, i only need to check if the licenses array value isn't 0.
+        // but for my "license exists, but is not valid" check, I only need to check if the licenses array value isn't 0.
         if (hasLicense)
         {
             return new MintLicenseResponseDto

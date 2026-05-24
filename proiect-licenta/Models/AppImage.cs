@@ -9,5 +9,5 @@ public class AppImage
     public int AppId { get; set; }
     public string ImageType { get; set; }
     public string Path { get; set; }
-    [JsonIgnore] public virtual App? App { get; set; }
+    [JsonIgnore] public virtual App App { get; set; }
 }

@@ -22,6 +22,7 @@ contract AppStore is Ownable{
     
     event PaymentFinalized(address from, address to, uint256 sum);
     event RefundFinalized(address from, address to, uint256 sum);
+    event WithdrawFinalized(address to, uint256 sum);
 
     constructor(address _licenseService) Ownable(msg.sender){
         licenseService = LicenseService(_licenseService);
@@ -71,24 +72,22 @@ contract AppStore is Ownable{
         require(licenseService.hasLicense(originalBuyer, appId), "License doesn't exist");
         
         if(app.price > 0){
-            require(msg.value == app.price, "Incorrect payment");
-            (bool sent, bytes memory data) = payable(originalBuyer).call{value: msg.value}("");
+            require(msg.value >= app.price, "Incorrect payment");
+            withdrawals[originalBuyer] += msg.value;
             licenseService.revokeLicense(originalBuyer, appId);
             
             emit RefundFinalized(msg.sender, originalBuyer, app.price);
         }
     }
     
-    receive() external payable{
-        
-    }
+    receive() external payable{}
     
-    function withdraw(){
+    function withdraw() external{
         require(withdrawals[msg.sender] > 0, "No funds to withdraw");
-        // sender in mapping si are fonduri disponibile
-        // vendorii trebuie sa aiba in interfata un buton de withdrawal
+        uint256 withdrawSum = withdrawals[msg.sender];
         withdrawals[msg.sender] = 0;
-        (bool sent, bytes memory data) = payable(msg.sender).call{value: msg.value}("");
+        (bool sent, bytes memory data) = payable(msg.sender).call{value: withdrawSum}("");
         require(sent);
+        emit WithdrawFinalized(msg.sender, withdrawSum);
     }
 }

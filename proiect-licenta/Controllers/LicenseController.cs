@@ -17,13 +17,7 @@ public class LicenseController : ControllerBase
     {
         _service = service;
     }
-/*
-    [HttpPost]
-    public async Task<ActionResult<LicenseDto>> CreateLicense(LicenseCreationDTO licenseDto)
-    {
-        return Ok(await _service.CreateLicenseAsync(licenseDto));
-    }
-*/
+    
     [HttpPost("upload")]
     public async Task<ActionResult<string>> UploadLicense(LicenseDto license)
     {

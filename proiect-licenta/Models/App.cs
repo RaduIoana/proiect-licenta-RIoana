@@ -15,9 +15,9 @@ namespace proiect_licenta.Models
         public int Discount { get; set; }
 
         [JsonIgnore] public virtual AppFile? AppFile { get; set; }
+        [JsonIgnore] public virtual MyUser? Developer { get; set; }
         [JsonIgnore] public virtual ICollection<AppImage> AppImages { get; set; } = new List<AppImage>();
         [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-        [JsonIgnore] public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
         [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();
         [JsonIgnore] public virtual ICollection<AppCategory> AppCategories { get; set; } = new List<AppCategory>();
         [JsonIgnore] public virtual ICollection<LibraryRecord> Libraries { get; set; } = new List<LibraryRecord>();

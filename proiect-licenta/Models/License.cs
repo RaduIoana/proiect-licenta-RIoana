@@ -24,8 +24,8 @@ public class License
     
     public string? IpfsUri { get; set; }
     
-    public bool Revoked { get; set; } = false;
+    public bool Revoked { get; set; }
     
+    [JsonIgnore] public virtual App App { get; set; }
     [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();
-    [JsonIgnore] public virtual App? App { get; set; }
 }

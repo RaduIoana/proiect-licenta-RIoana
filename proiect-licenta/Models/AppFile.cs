@@ -8,5 +8,5 @@ public class AppFile
     [Key] public string Cid { get; set; }
     public string FileName { get; set; }
     public int AppId { get; set; }
-    [JsonIgnore] public virtual App? App { get; set; }
+    [JsonIgnore] public virtual App App { get; set; }
 }

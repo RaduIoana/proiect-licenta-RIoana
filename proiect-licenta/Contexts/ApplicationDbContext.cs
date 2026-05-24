@@ -20,7 +20,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
     public DbSet<PaymentRecord> PaymentRecords { get; set; }
     public DbSet<License> Licenses { get; set; }
     public DbSet<RefundRequest> RefundRequests { get; set; }
-    public DbSet<Report> Reports { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
@@ -30,7 +29,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<AppCategory>().HasKey(ab => new { ab.AppId, ab.CategoryId });
         modelBuilder.Entity<LibraryRecord>().HasKey(ab => new { ab.UserId, ab.AppId, ab.PaymentId });
-        modelBuilder.Entity<Report>().HasKey(ab => new { ab.UserId, ab.AppId });
         modelBuilder.Entity<Review>().HasKey(ab => new { ab.AppId, ab.UserId });
         modelBuilder.Entity<UserVoucher>().HasKey(ab => new { ab.VoucherId, ab.UserId });
         
@@ -38,6 +36,11 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .HasOne(a => a.AppFile)
             .WithOne(af => af.App)
             .HasForeignKey<AppFile>(af => af.AppId);
+        
+        modelBuilder.Entity<App>()
+            .HasOne(a => a.Developer)
+            .WithMany(u => u.Apps)
+            .HasForeignKey(a => a.DevId);
         
         modelBuilder.Entity<AppImage>()
             .HasOne(a => a.App)

@@ -21,7 +21,7 @@ var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 if (environment == "Development")
 {
-    DotNetEnv.Env.Load(); // Only loads .env locally
+    DotNetEnv.Env.Load();
 }
 
 var ipfs = new IpfsClient("http://host.docker.internal:5001");
@@ -30,7 +30,7 @@ var key = Environment.GetEnvironmentVariable("JWT__KEY");
 var issuer = Environment.GetEnvironmentVariable("JWT__ISSUER");
 var audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE");
 
-// for on-chain testing:
+// for on chain testing:
 var liveAcc = new Account(Environment.GetEnvironmentVariable("OWNER__ACCOUNT__KEY__LIVE"));
 var web3 = new Web3(liveAcc, $"https://sepolia.infura.io/v3/{Environment.GetEnvironmentVariable("INFURA__API")}");
 //for local testing:
@@ -128,7 +128,6 @@ builder.Services.AddScoped<LicenseService>();
 builder.Services.AddScoped<MetaAuthService>();
 builder.Services.AddScoped<PaymentRecordService>();
 builder.Services.AddScoped<RefundService>();
-builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<UserAccService>();
 builder.Services.AddScoped<VoucherService>();

@@ -81,9 +81,6 @@ public class AppstoreService
 
         var defaultPrice = app.Price;
         
-        if (user.Subscription)
-            defaultPrice -= app.Discount * defaultPrice / 100;
-        
         // add voucher check
 
         return defaultPrice;

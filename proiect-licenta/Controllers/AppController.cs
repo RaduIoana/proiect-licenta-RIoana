@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using proiect_licenta.Contexts;
+using proiect_licenta.Exceptions;
 using proiect_licenta.Models;
 using proiect_licenta.Services;
 
@@ -12,10 +13,15 @@ namespace proiect_licenta.Controllers;
 public class AppController : ControllerBase
 {
     private readonly AppService _appService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ApplicationDbContext _context;
 
-    public AppController(AppService appService)
+    public AppController(AppService appService, IHttpContextAccessor httpContextAccessor,
+        ApplicationDbContext context)
     {
+        _httpContextAccessor = httpContextAccessor;
         _appService = appService;
+        _context = context;
     }
         
     [AllowAnonymous]
@@ -70,9 +76,12 @@ public class AppController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<App>> PostApp(App app)
     {
-        Console.WriteLine($"App received: {System.Text.Json.JsonSerializer.Serialize(app)}");
-
-        return Ok(await _appService.CreateApp(app));
+        // moved user check here so I can use this for db seed
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        return Ok(await _appService.CreateApp(app, user.Id, user.WalletAddress));
     }
 
     [Authorize(Roles = "ADMIN, DEVELOPER")]

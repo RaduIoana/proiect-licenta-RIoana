@@ -134,10 +134,12 @@ public class PaymentRecordService
         
         await _context.SaveChangesAsync();
 
-        var existingLicense = await _context.Licenses.Where(l => l.AppId == existingPaymentRecord.AppId)
+        var existingLicense = await _context.Licenses
+            .Where(l => l.AppId == existingPaymentRecord.AppId && l.PaymentId == existingPaymentRecord.Id)
             .FirstOrDefaultAsync();
         if (existingLicense != null)
         {
+            Console.WriteLine("license already exists");
             return new ConfirmPaymentResponseDto
             {
                 IpfsUri = existingLicense.IpfsUri,

@@ -1,0 +1,20 @@
+﻿USE proilic;
+    
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE AppCategories;
+TRUNCATE TABLE Categories;
+TRUNCATE TABLE Reviews;
+TRUNCATE TABLE RefundRequests;
+TRUNCATE TABLE PaymentRecords;
+TRUNCATE TABLE Libraries;
+TRUNCATE TABLE Licenses;
+
+TRUNCATE AspNetUserTokens;
+TRUNCATE AspNetUserLogins;
+TRUNCATE AspNetUserClaims;
+TRUNCATE AspNetUserRoles;
+TRUNCATE AspNetRoleClaims;
+TRUNCATE AspNetUsers;
+
+SET FOREIGN_KEY_CHECKS = 1;

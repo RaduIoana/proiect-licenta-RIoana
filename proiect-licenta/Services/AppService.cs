@@ -152,15 +152,8 @@ public class AppService
         return false;
     }
 
-    public async Task<App> CreateApp(App app)
+    public async Task<App> CreateApp(App app, string developerId, string walletAddress)
     {
-        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-            throw new NotFoundException("User not found");
-        
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/AppStore.sol/AppStore.json"));
 
         var abi = contractData["abi"].ToString();
@@ -170,7 +163,7 @@ public class AppService
         var func = _web3.Eth.GetContractQueryHandler<ExistsFunction>();
         bool exists = await func.QueryAsync<bool>(contractAddress, new ExistsFunction{Id = app.Id});
 
-        app.DevId = user.Id;
+        app.DevId = developerId;
 
         _context.Apps.Add(app);
         await _context.SaveChangesAsync();
@@ -185,7 +178,7 @@ public class AppService
                 from: _web3.TransactionManager.Account.Address,
                 gas: new HexBigInteger(3000000),
                 value: new HexBigInteger(0),
-                functionInput: [app.Id, Web3.Convert.ToWei(app.Price), ownerAddress]
+                functionInput: [app.Id, Web3.Convert.ToWei(app.Price), walletAddress]
             );
             
             Console.WriteLine("Transaction hash:"+ receipt.TransactionHash);
@@ -207,9 +200,6 @@ public class AppService
         
         if (existingApp.DevId != userId && !_userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
             throw new ForbiddenException("Forbidden");
-            
-        var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR");
-        //var ownerAddress = Environment.GetEnvironmentVariable("OWNER__ACCOUNT__ADDR__LOCAL");
         
         var contractData = JObject.Parse(File.ReadAllText("/app/hardhatproj/artifacts/contracts/AppStore.sol/AppStore.json"));
                 
@@ -228,7 +218,7 @@ public class AppService
                 from: _web3.TransactionManager.Account.Address,
                 gas: new HexBigInteger(3000000),
                 value: null,
-                functionInput: [app.Id, Web3.Convert.ToWei(app.Price), ownerAddress]
+                functionInput: [app.Id, Web3.Convert.ToWei(app.Price), user.WalletAddress]
             );
             // setting address to owner address is placeholder until implementing vendor accs
             
