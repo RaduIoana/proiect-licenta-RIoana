@@ -37,6 +37,7 @@ export class EditAppComponent {
 
   icon: File | null = null;
   screenshots: File[] = [];
+  exe: File | null = null;
 
   constructor(private fb: FormBuilder, private appService: AppsService, private route: ActivatedRoute,
               private messageService: MessageService, private categoryService: CategoriesService) {
@@ -52,17 +53,23 @@ export class EditAppComponent {
     const formData = new FormData();
     if (this.icon)
       formData.append('files', this.icon);
-    console.log(this.icon);
     await this.appService.editAppIcon(id, formData);
   }
 
   async editScreenshots(id: number){
     const formData = new FormData();
     this.screenshots.forEach(file => {
-      console.log(file);
       formData.append('files', file);
     });
     await this.appService.editAppScreenshots(id, formData);
+  }
+
+  async editFile(id: number){
+    const formData = new FormData();
+    if (this.exe)
+      formData.append('file', this.exe);
+    console.log(this.exe);
+    await this.appService.postAppFile(id, formData);
   }
 
   ngOnInit() {
@@ -106,6 +113,8 @@ export class EditAppComponent {
           await this.editIcon(app.id);
         if (this.screenshots.length != 0)
           await this.editScreenshots(app.id);
+        if (this.exe != null)
+          await this.editFile(app.id);
 
         form.reset();
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'App edited successfully' });
@@ -143,4 +152,14 @@ export class EditAppComponent {
   onScreenshotRemove(event: any) {
     this.screenshots = this.screenshots.filter(s => s !== event.file);
   }
+
+  onFileSelect(event: any) {
+    this.exe = event.files[0];
+    console.log(this.exe);
+  }
+
+  onFileRemove() {
+    this.exe = null;
+  }
+
 }

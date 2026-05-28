@@ -27,9 +27,33 @@ public class AppService
         _userManager = userManager;
     }
 
-    public async Task<IEnumerable<App>> GetApps(int[]? categories, string? sortBy, string? order)
+    public async Task<IEnumerable<App>> GetApps(int[]? categories, string? sortBy, string? order,
+        bool library = false, bool devApps = false)
     {
         var query = _context.Apps.AsQueryable();
+
+        if (library)
+        {
+            var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users.Include(u => u.Libraries)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new NotFoundException("User Not Found");
+            
+            query = _context.Libraries.Where(l => l.UserId == userId)
+                .Select(l => l.App).AsQueryable();
+        }
+
+        if (devApps)
+        {
+            var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users.Include(u => u.Libraries)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new NotFoundException("User Not Found");
+            
+            query = _context.Apps.Where(a => a.DevId == userId).AsQueryable();
+        }
 
         if (categories?.Length != 0)
         {
@@ -54,18 +78,11 @@ public class AppService
         return await query.ToListAsync();
     }
 
+    /*
     public async Task<IEnumerable<App>> GetUserApps(int[]? categories, string? sortBy, string? order)
     {
-        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users.Include(u => u.Libraries)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null)
-            throw new NotFoundException("User Not Found");
         
-        var query = _context.Libraries
-            .Where(l => l.UserId == userId)
-            .Select(l => l.App)
-            .AsQueryable();
+        var 
         
         if (categories?.Length != 0)
         {
@@ -89,6 +106,7 @@ public class AppService
         
         return query;
     }
+    */
 
     public async Task<App> GetApp(int id)
     {

@@ -19,6 +19,8 @@
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
     "@primeng/themes": "^19.0.6",
+    "@reown/appkit": "^1.8.20",
+    "@reown/appkit-adapter-ethers": "^1.8.20",
     "ethers": "^6.15.0",
     "jwt-decode": "^4.0.0",
     "primeflex": "^4.0.0",

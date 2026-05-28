@@ -75,4 +75,8 @@ export class HeaderComponent {
   navigateCreateApp(){
     this.router.navigate(['apps/create']);
   }
+
+  navigateDevApp(){
+    this.router.navigate(['uploaded-apps']);
+  }
 }

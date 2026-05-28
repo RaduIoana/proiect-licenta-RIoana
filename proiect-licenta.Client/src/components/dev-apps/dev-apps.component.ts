@@ -1,33 +1,32 @@
 import { Component } from '@angular/core';
-import {DatePipe, DecimalPipe, NgClass, NgForOf, NgIf} from '@angular/common';
-import {App, AppFilters, AppsService} from '../../services/apps.service';
-import {AuthService} from '../../services/auth.service';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {Button} from 'primeng/button';
+import {DatePipe, NgClass, NgForOf} from '@angular/common';
 import {Select} from 'primeng/select';
 import {CategoriesService, Category} from '../../services/categories.service';
+import {App, AppFilters, AppsService} from '../../services/apps.service';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {firstValueFrom} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 
 @Component({
-  selector: 'app-library',
+  selector: 'app-dev-apps',
   imports: [
+    Button,
     DatePipe,
     NgForOf,
-    RouterLink,
-    Button,
     Select,
     FormsModule,
+    RouterLink,
     NgClass
   ],
-  templateUrl: './library.component.html',
-  styleUrl: './library.component.scss'
+  templateUrl: './dev-apps.component.html',
+  styleUrl: './dev-apps.component.scss'
 })
-export class LibraryComponent {
+export class DevAppsComponent {
   categories: Category[] = [];
   selectedCategories: number[] = [];
   apps: App[] = [];
-  filters: AppFilters = {library: true, devApps: false};
+  filters: AppFilters = {library: false, devApps: true};
 
   sortOptions = ['Name', 'Price', 'Free', 'Launch-date', 'Rating', 'Discount'];
   order = ['Ascending', 'Descending'];

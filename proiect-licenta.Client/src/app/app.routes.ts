@@ -11,6 +11,7 @@ import {AdminRefundsComponent} from '../components/admin-refunds/admin-refunds.c
 import {UnauthorizedComponent} from '../components/unauthorized/unauthorized.component';
 import {LibraryComponent} from '../components/library/library.component';
 import {EditAppComponent} from '../components/edit-app/edit-app.component';
+import {DevAppsComponent} from '../components/dev-apps/dev-apps.component';
 
 export const routes: Routes = [
   {path: 'login', component: LoginComponent},
@@ -29,5 +30,7 @@ export const routes: Routes = [
     canActivate: [RoleGuard], data: {roles: ['ADMIN']}},
   {path: 'library', component: LibraryComponent,
     canActivate: [RoleGuard], data: {roles: ['DEVELOPER', 'ADMIN', 'USER']}},
+  {path: 'uploaded-apps', component: DevAppsComponent,
+    canActivate: [RoleGuard], data: {roles: ['DEVELOPER', 'ADMIN']}},
   {path: 'unauthorized', component: UnauthorizedComponent},
 ];

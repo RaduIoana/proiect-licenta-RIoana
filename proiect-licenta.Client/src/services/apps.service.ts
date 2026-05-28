@@ -20,6 +20,8 @@ export interface AppFilters {
   categories?: number[];
   sortBy?: string;
   order?: string;
+  library: boolean;
+  devApps: boolean;
 }
 
 export interface AppImage {
@@ -68,6 +70,12 @@ export class AppsService {
       formData, {headers}));
   }
 
+  async postAppFile(id: number, formData: FormData): Promise<string> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
+    return await firstValueFrom(this.http.post<any>(`${environment.apiUrl}/api/file/ipfs/${id}`,
+      formData, {headers}));
+  }
+
   async editAppIcon(id: number, formData: FormData): Promise<string> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
     return await firstValueFrom(this.http.put<any>(`${environment.apiUrl}/api/file/images/icon/${id}`,
@@ -96,28 +104,11 @@ export class AppsService {
       params = params.set('order', filters.order);
     }
 
+    params = params.set('library', filters.library);
+    params = params.set('devApps', filters.devApps);
+
     const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
     return this.http.get<App[]>(`${environment.apiUrl}/api/Apps/get_apps/`, {params, headers});
-  }
-
-  getUserApps(filters: AppFilters): Observable<App[]> {
-    let params = new HttpParams();
-    if (filters.categories?.length) {
-      filters.categories.forEach((cat) => {
-        params = params.append('categories', cat.toString());
-      });
-    }
-
-    if (filters.sortBy) {
-      params = params.set('sortBy', filters.sortBy);
-    }
-
-    if (filters.order) {
-      params = params.set('order', filters.order);
-    }
-
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
-    return this.http.get<App[]>(`${environment.apiUrl}/api/Apps/get_user_apps/`, {params, headers});
   }
 
   getAppById(id: number): Observable<App> {

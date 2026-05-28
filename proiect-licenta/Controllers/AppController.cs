@@ -27,16 +27,10 @@ public class AppController : ControllerBase
     [AllowAnonymous]
     [HttpGet("get_apps")]
     public async Task<ActionResult<IEnumerable<App>>> GetApps([FromQuery] int[]? categories, 
-        [FromQuery] string? sortBy, [FromQuery] string? order)
+        [FromQuery] string? sortBy, [FromQuery] string? order,
+        [FromQuery] bool library = false, [FromQuery] bool devApps = false)
     {
-        return Ok(await _appService.GetApps(categories, sortBy, order));
-    }
-
-    [HttpGet("get_user_apps")]
-    public async Task<ActionResult<IEnumerable<App>>> GetUserApps([FromQuery] int[]? categories, 
-        [FromQuery] string? sortBy, [FromQuery] string? order)
-    {
-        return Ok(await _appService.GetUserApps(categories, sortBy, order));
+        return Ok(await _appService.GetApps(categories, sortBy, order, library, devApps));
     }
 
     [AllowAnonymous]

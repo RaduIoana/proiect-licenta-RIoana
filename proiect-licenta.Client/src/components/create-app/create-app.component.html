@@ -60,6 +60,14 @@
         (onSelect)="onScreenshotSelect($event)"
         (onRemove)="onScreenshotRemove($event)"
       ></p-fileupload>
+
+      <div class="block text-sm font-medium">App file</div>
+      <p-fileupload
+        mode="basic"
+        [customUpload]="true"
+        (onSelect)="onFileSelect($event)"
+        (onRemove)="onFileRemove()"
+      ></p-fileupload>
     </div>
 
     <div class="mt-4">

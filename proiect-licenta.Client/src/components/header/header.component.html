@@ -22,6 +22,15 @@
       </p-button>
 
       <p-button
+        label="Uploaded apps"
+        *ngIf='hasRole("DEVELOPER") || hasRole("ADMIN")'
+        variant="text"
+        severity="info"
+        (click)="navigateDevApp()"
+      >
+      </p-button>
+
+      <p-button
         label="Create app"
         *ngIf='hasRole("DEVELOPER") || hasRole("ADMIN")'
         variant="text"

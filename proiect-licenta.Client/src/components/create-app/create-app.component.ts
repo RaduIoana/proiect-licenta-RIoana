@@ -33,6 +33,7 @@ export class CreateAppComponent {
 
   icon: File | null = null;
   screenshots: File[] = [];
+  exe: File | null = null;
 
   constructor(private fb: FormBuilder, private appService: AppsService,
               private messageService: MessageService, private categoryService: CategoriesService) {
@@ -67,6 +68,13 @@ export class CreateAppComponent {
     await this.appService.postAppScreenshots(id, formData);
   }
 
+  async uploadFile(id: number){
+    const formData = new FormData();
+    if (this.exe)
+      formData.append('file', this.exe);
+    await this.appService.postAppFile(id, formData);
+  }
+
   async createApp(form:any) {
     if(this.appForm.valid){
       this.disableButton = true;
@@ -86,6 +94,7 @@ export class CreateAppComponent {
 
         await this.uploadIcon(id);
         await this.uploadScreenshots(id);
+        await this.uploadFile(id);
 
         form.reset();
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'App added successfully' });
@@ -113,6 +122,14 @@ export class CreateAppComponent {
 
   onScreenshotRemove(event: any) {
     this.screenshots = this.screenshots.filter(s => s !== event.file);
+  }
+
+  onFileSelect(event: any) {
+    this.exe = event.files[0];
+  }
+
+  onFileRemove() {
+    this.exe = null;
   }
 }
 

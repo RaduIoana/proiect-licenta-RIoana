@@ -30,7 +30,7 @@ export class HomeComponent {
   categories: Category[] = [];
   selectedCategories: number[] = [];
   apps: App[] = [];
-  filters: AppFilters = {};
+  filters: AppFilters = {library: false, devApps: false};
 
   sortOptions = ['Name', 'Price', 'Free', 'Launch-date', 'Rating', 'Discount'];
   order = ['Ascending', 'Descending'];
