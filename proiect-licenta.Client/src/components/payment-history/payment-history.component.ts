@@ -6,6 +6,7 @@ import {Button} from 'primeng/button';
 import {MessageService} from 'primeng/api';
 import {RefundService} from '../../services/refund.service';
 import {Tag} from 'primeng/tag';
+import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-payment-history',
@@ -21,30 +22,27 @@ import {Tag} from 'primeng/tag';
 export class PaymentHistoryComponent {
   payments: PaymentRecord[] = [];
 
-  constructor(private router: Router, private paymentRecordsService: PaymentRecordsService,
-              private refundService: RefundService, private messageService: MessageService) {
-    this.paymentRecordsService.getUserPaymentHistory().subscribe({
-      next: (data) => {
-        this.payments = data.map(obj => ({...obj, canRefund: this.determineRefund(obj)}));
-      },
-      error: err => {
-        console.error('Error fetching payment history:', err);
-      }
-    });
-  }
-
-  determineRefund(paymentRecord: PaymentRecord): boolean {
-    if (paymentRecord.paymentStatus == "success"
-      && paymentRecord.paymentType != 0
-      && this.within48Hrs(paymentRecord.paymentDT)
-    )
-      return true;
-    return false;
-  }
-
-  within48Hrs(paymentDT: string): boolean {
-    const interval = Math.abs(new Date().getTime() - new Date(paymentDT).getTime());
-    return interval <= 48 * 60 * 60 * 1000;
+  constructor(private paymentRecordsService: PaymentRecordsService, private refundService: RefundService,
+              private messageService: MessageService, private authService: AuthService) {
+    if (this.authService.hasRole("ADMIN")){
+      this.paymentRecordsService.getAllPayments().subscribe({
+        next: data => {
+          this.payments = data;
+        },
+        error: err => {
+          console.error('Error fetching payment history:', err);
+        }
+      });
+    } else {
+      this.paymentRecordsService.getUserPaymentHistory().subscribe({
+        next: data => {
+          this.payments = data;
+        },
+        error: err => {
+          console.error('Error fetching payment history:', err);
+        }
+      });
+    }
   }
 
   async requestRefund(id: number){

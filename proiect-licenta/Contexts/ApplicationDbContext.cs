@@ -21,8 +21,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
     public DbSet<License> Licenses { get; set; }
     public DbSet<RefundRequest> RefundRequests { get; set; }
     public DbSet<Review> Reviews { get; set; }
-    public DbSet<UserVoucher> UserVouchers { get; set; }
-    public DbSet<Voucher> Vouchers { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,7 +28,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
         modelBuilder.Entity<AppCategory>().HasKey(ab => new { ab.AppId, ab.CategoryId });
         modelBuilder.Entity<LibraryRecord>().HasKey(ab => new { ab.UserId, ab.AppId, ab.PaymentId });
         modelBuilder.Entity<Review>().HasKey(ab => new { ab.AppId, ab.UserId });
-        modelBuilder.Entity<UserVoucher>().HasKey(ab => new { ab.VoucherId, ab.UserId });
         
         modelBuilder.Entity<App>()
             .HasOne(a => a.AppFile)
@@ -95,15 +92,5 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
             .HasOne(t => t.PaymentRecord)
             .WithOne(t => t.RefundRequest)
             .HasForeignKey<RefundRequest>(t => t.PaymentId);
-        
-        // user - uservoucher - voucher relationship
-        modelBuilder.Entity<UserVoucher>()
-            .HasOne(t => t.User)
-            .WithMany(t => t.UserVouchers)
-            .HasForeignKey(t => t.UserId);
-        modelBuilder.Entity<UserVoucher>()
-            .HasOne(t => t.Voucher)
-            .WithMany(t => t.UserVouchers)
-            .HasForeignKey(t => t.VoucherId);
     }
 }

@@ -81,9 +81,6 @@ public class CategoryService
         if (app == null)
             throw new NotFoundException("App not found");
         
-        if (app.DevId != userId)
-            throw new ForbiddenException("Forbidden");
-        
         //remove categories not in the list (de-assignment)
         var removals = app.AppCategories.Where(ac => !categoryIds.Contains(ac.CategoryId));
         foreach (var removal in removals)

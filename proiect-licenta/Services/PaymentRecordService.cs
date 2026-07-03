@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Ipfs.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Util;
 using Nethereum.Web3;
@@ -17,33 +18,90 @@ public class PaymentRecordService
     private readonly Web3 _web3;
     private readonly LicenseService _licenseService;
     private readonly IpfsClient _ipfsClient;
+    private readonly UserManager<MyUser> _userManager;
 
     public PaymentRecordService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor,
-        Web3 web3, LicenseService licenseService, IpfsClient ipfsClient)
+        Web3 web3, LicenseService licenseService, IpfsClient ipfsClient, UserManager<MyUser> userManager)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _web3 = web3;
         _licenseService = licenseService;
         _ipfsClient = ipfsClient;
+        _userManager = userManager;
     }
 
-    public async Task<IEnumerable<PaymentRecord>> GetUserPaymentRecords()
+    public async Task<IEnumerable<GetPaymentRecordDTO>> GetUserPaymentRecords()
     {
         var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
             throw new Exception("User Not Found");
+        
         var payRecords = await _context.PaymentRecords
             .Where(pr=> pr.UserId == userId).ToListAsync();
-        return payRecords;
+        return payRecords.Select(payRecord => new GetPaymentRecordDTO
+            {
+                Id = payRecord.Id,
+                AppId = payRecord.AppId,
+                PaymentDT = payRecord.PaymentDT,
+                PaymentType = payRecord.PaymentType,
+                PaymentAmount = payRecord.PaymentAmount,
+                PaymentStatus = payRecord.Status,
+                CanRefund = payRecord.Status == "success"
+                            && payRecord.PaymentType != 0
+                            && DateTime.UtcNow <= payRecord.PaymentDT.AddHours(48)
+                            && payRecord.UserId == userId
+            }
+        ).ToList();
+    }
+    
+    public async Task<IEnumerable<GetPaymentRecordDTO>> GetAllPaymentRecords()
+    {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new Exception("User Not Found");
+        
+        var payRecords = await _context.PaymentRecords.ToListAsync();
+        return payRecords.Select(payRecord => new GetPaymentRecordDTO
+            {
+                Id = payRecord.Id,
+                AppId = payRecord.AppId,
+                PaymentDT = payRecord.PaymentDT,
+                PaymentType = payRecord.PaymentType,
+                PaymentAmount = payRecord.PaymentAmount,
+                PaymentStatus = payRecord.Status,
+                CanRefund = payRecord.Status == "success"
+                            && payRecord.PaymentType != 0
+                            && DateTime.UtcNow <= payRecord.PaymentDT.AddHours(48)
+                            && (payRecord.UserId == userId || _userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+            }
+        ).ToList();
     }
 
-    public async Task<PaymentRecord> GetPaymentRecord(int id)
+    public async Task<GetPaymentRecordDTO> GetPaymentRecord(int id)
     {
+        var userId = _httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new Exception("User Not Found");
+        
         var payRecord = await _context.PaymentRecords.FindAsync(id);
         if (payRecord == null) { throw new Exception(); }
-        return payRecord;
+        return new GetPaymentRecordDTO
+        {
+            Id = payRecord.Id,
+            AppId = payRecord.AppId,
+            PaymentDT = payRecord.PaymentDT,
+            PaymentType = payRecord.PaymentType,
+            PaymentAmount = payRecord.PaymentAmount,
+            PaymentStatus = payRecord.Status,
+            CanRefund = payRecord.Status == "success"
+                        && payRecord.PaymentType != 0
+                        && DateTime.UtcNow <= payRecord.PaymentDT.AddHours(48)
+                        && (payRecord.UserId == userId || _userManager.GetRolesAsync(user).Result.Contains("ADMIN"))
+        };
     }
 
     public async Task<PostPaymentRecordResponseDTO> CreatePaymentRecord(PostPaymentRecordRequestDTO request)

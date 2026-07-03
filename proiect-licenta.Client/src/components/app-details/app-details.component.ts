@@ -20,6 +20,7 @@ import {Avatar} from 'primeng/avatar';
 import {Divider} from 'primeng/divider';
 import {GalleriaModule} from 'primeng/galleria';
 import {Carousel} from 'primeng/carousel';
+import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-app-details',
@@ -57,6 +58,7 @@ export class AppDetailsComponent {
   reviews: Review[] = [];
 
   isAppOwner: boolean = false;
+  isLoggedIn: boolean = false;
   disablePurchaseButton: boolean = false;
   disableRemoveButton: boolean = false;
   displayRemoveButton: boolean = false;
@@ -65,9 +67,10 @@ export class AppDetailsComponent {
               private location: Location, private router: Router,
               private messageService: MessageService, private licenseService: LicenseService,
               private reviewService: ReviewService, private metaMaskService: MetaMaskService,
-              private http: HttpClient) {}
+              private authService: AuthService, private http: HttpClient) {}
 
   ngOnInit() {
+    this.isLoggedIn = this.authService.isLoggedIn();
     this.route.params.subscribe(async params => {
       const id = params['id'];
       if (id) {
@@ -220,7 +223,6 @@ export class AppDetailsComponent {
         provider = new ethers.BrowserProvider((window as any).ethereum);
         // for local
         //provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-
         signer = await provider.getSigner();
       }
 

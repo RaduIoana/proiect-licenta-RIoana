@@ -78,36 +78,6 @@ public class AppService
         return await query.ToListAsync();
     }
 
-    /*
-    public async Task<IEnumerable<App>> GetUserApps(int[]? categories, string? sortBy, string? order)
-    {
-        
-        var 
-        
-        if (categories?.Length != 0)
-        {
-            query = query.Where(app =>
-                app.AppCategories
-                    .Where(ac => categories.Contains(ac.CategoryId))
-                    .Select(ac => ac.CategoryId).Distinct()
-                    .Count() == categories.Length
-            );
-        }
-        
-        query = sortBy switch
-        {
-            "Name" => order == "Descending" ? query.OrderByDescending(a => a.Name) : query.OrderBy(a => a.Name),
-            "Price" => order == "Descending" ? query.OrderByDescending(a => a.Price) : query.OrderBy(a => a.Price),
-            "Free" => query.Where(a => a.Price == 0),
-            "Launch-date" => order == "Descending" ? query.OrderByDescending(a => a.LaunchDate) : query.OrderBy(a => a.LaunchDate),
-            "Discount" => order == "Descending" ? query.OrderByDescending(a => a.Discount) : query.OrderBy(a => a.Discount),
-            _ => query
-        };
-        
-        return query;
-    }
-    */
-
     public async Task<App> GetApp(int id)
     {
         var app = await _context.Apps.FindAsync(id);

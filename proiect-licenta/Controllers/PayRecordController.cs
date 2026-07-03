@@ -20,13 +20,20 @@ public class PayRecordController : ControllerBase
     }
     
     [HttpGet("get_payRecords/user")]
-    public async Task<ActionResult<IEnumerable<PaymentRecord>>> GetUserPaymentRecords()
+    public async Task<ActionResult<IEnumerable<GetPaymentRecordDTO>>> GetUserPaymentRecords()
     {
         return Ok(await _paymentRecordService.GetUserPaymentRecords());
     }
     
+    [Authorize(Roles = "ADMIN")]
+    [HttpGet("get_payRecords")]
+    public async Task<ActionResult<IEnumerable<GetPaymentRecordDTO>>> GetAllPaymentRecords()
+    {
+        return Ok(await _paymentRecordService.GetAllPaymentRecords());
+    }
+    
     [HttpGet("{id}")]
-    public async Task<ActionResult<PaymentRecord>> GetById(int id)
+    public async Task<ActionResult<GetPaymentRecordDTO>> GetById(int id)
     {
         return Ok(await _paymentRecordService.GetPaymentRecord(id));
     }

@@ -9,7 +9,7 @@
           <div>App: {{payment.appId}}</div>
           <div>Date: {{payment.paymentDT}}</div>
           <div>Amount: {{payment.paymentAmount}}</div>
-          <div *ngIf="payment.paymentType == 1; else free">Status: <p-tag [severity]="determineTagSeverity(payment.paymentStatus)" value="payment.paymentStatus" /></div>
+          <div *ngIf="payment.paymentType == 1; else free">Status: <p-tag [severity]="determineTagSeverity(payment.paymentStatus)" [value]="payment.paymentStatus" /></div>
           <ng-template #free><p-tag severity="secondary" value="Free"/></ng-template>
           <p-button
             label="Request refund"

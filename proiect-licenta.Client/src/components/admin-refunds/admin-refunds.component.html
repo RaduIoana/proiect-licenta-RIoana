@@ -28,7 +28,7 @@
           <td>{{refund.appId}}</td>
           <td>{{refund.appName}}</td>
           <td>{{refund.sum}} ETH</td>
-          <td><p-tag [severity]="determineTagSeverity(refund.status)" value="refund.status"></p-tag></td>
+          <td><p-tag [severity]="determineTagSeverity(refund.status)" [value]="refund.status"></p-tag></td>
           <td>
             <p-button
               label="Grant refund" severity="primary"

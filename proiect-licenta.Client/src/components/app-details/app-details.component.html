@@ -17,14 +17,14 @@
 
   <h1 class="px-4 pb-2 text-xl">{{app.name}}</h1>
 
-  <div class="px-4 pb-2">
+  <div class="px-4 pb-4">
     <img [src]="'http://localhost:5152' + this.app.icon?.path" alt="App icon"
          class="w-32 h-32 object-cover border-2 border-border rounded-md" />
   </div>
 
-  <div class="flex flex-row">
+  <div class="flex flex-row px-4 pb-4 gap-4">
     <!-- This is the container for button and app price -->
-    <div [ngSwitch]="appButtonType" class="px-4 pb-4">
+    <div *ngIf="isLoggedIn" [ngSwitch]="appButtonType">
       <p-button
         *ngSwitchCase="'install'"
         label="Install"
@@ -73,9 +73,9 @@
     </ng-template>
   </div>
 
-  <div class="flex flex-row px-4">
+  <div class="flex flex-row px-4 pb-4">
     <p-rating [(ngModel)]="app.rating" [readonly]="true" (click)="promptReviewForm()"/>
-    <span class="px-2">({{app.rating}})</span>
+    <span>({{app.rating}})</span>
   </div>
 
   <p-carousel class="flex-shrink-0 rounded-lg object-contain" [value]="images" [circular]="true" [numVisible]="3">

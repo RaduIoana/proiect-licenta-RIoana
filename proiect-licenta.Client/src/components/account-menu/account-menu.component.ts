@@ -28,15 +28,12 @@ export class AccountMenuComponent {
 
   isDisabled: boolean = false;
 
-  constructor(private authService: AuthService, private messageService: MessageService,
-              private metaMaskService: MetaMaskService) {}
+  constructor(private messageService: MessageService, private metaMaskService: MetaMaskService) {}
 
   async withdraw() {
     this.isDisabled = true;
     try{
-      // should send transaction from here?
       // make a verification and a record of withdrawal?
-      // but get functionality first
       const abi = contractData.abi;
       const contractAddress = environment.liveContractAddr;
       //const contractAddress = environment.localContractAddr;
@@ -72,9 +69,6 @@ export class AccountMenuComponent {
       const contract = new ethers.Contract(contractAddress, abi, signer) as unknown as AppStoreContract;
       const tx = await contract.withdraw();
       const receipt = await tx.wait();
-
-      //log withdrawal here - as payment record? doesn't make much sense tho
-
       //nothing else?
     } catch (error: any) {
       console.log("Error purchasing app:" + error.message);

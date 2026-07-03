@@ -130,7 +130,6 @@ builder.Services.AddScoped<PaymentRecordService>();
 builder.Services.AddScoped<RefundService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<UserAccService>();
-builder.Services.AddScoped<VoucherService>();
 builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<CategoryService>();
 

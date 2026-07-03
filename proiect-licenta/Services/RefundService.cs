@@ -215,10 +215,14 @@ public class RefundService
         var libraryRecord = _context.Libraries.FirstOrDefault(l => l.UserId == user.Id && l.PaymentId == refundRequest.PaymentId);
         _context.Libraries.Remove(libraryRecord);
         
-        // revoke license
-        await _licenseService.RevokeLicenseAsync(user.Id, paymentRecord);
+        // revoke license in db
+        var license = await _context.Licenses.FindAsync(paymentRecord.LicenseId);
+        if (license == null)
+            throw new NotFoundException("License not found.");
+        license.Revoked = true;
+        _context.Entry(license).State = EntityState.Modified;
+        
         paymentRecord.Status = "refunded";
-
         await _context.SaveChangesAsync();
         return refundRequest;
     }

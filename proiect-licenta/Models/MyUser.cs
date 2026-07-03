@@ -8,7 +8,6 @@ public class MyUser : IdentityUser
     public string WalletAddress { get; set; } = "";
 
     [JsonIgnore] public virtual ICollection<App> Apps { get; set; } = new List<App>();
-    [JsonIgnore] public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
     [JsonIgnore] public virtual ICollection<RefundRequest> RefundRequests { get; set; } = new List<RefundRequest>();
     [JsonIgnore] public virtual ICollection<PaymentRecord> PaymentRecords { get; set; } = new List<PaymentRecord>();
     [JsonIgnore] public virtual ICollection<LibraryRecord> Libraries { get; set; } = new List<LibraryRecord>();

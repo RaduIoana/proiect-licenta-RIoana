@@ -5,10 +5,10 @@ import {MultiSelect} from "primeng/multiselect";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {Toast} from "primeng/toast";
 import {CategoriesService, Category} from '../../services/categories.service';
-import {App, AppImage, AppsService} from '../../services/apps.service';
+import {App, AppsService} from '../../services/apps.service';
 import {MessageService} from 'primeng/api';
 import {firstValueFrom} from 'rxjs';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {FileUpload} from 'primeng/fileupload';
 
 @Component({
@@ -40,7 +40,7 @@ export class EditAppComponent {
   exe: File | null = null;
 
   constructor(private fb: FormBuilder, private appService: AppsService, private route: ActivatedRoute,
-              private messageService: MessageService, private categoryService: CategoriesService) {
+              private router: Router, private messageService: MessageService, private categoryService: CategoriesService) {
     this.appForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
@@ -83,7 +83,7 @@ export class EditAppComponent {
         const cat = await firstValueFrom(this.categoryService.getAppCategories(id));
         this.currentCategories = cat.map(c => c.id);
 
-        await this.fillForm(id);
+        await this.fillForm();
       } else {
         console.log('no app found');
         this.messageService.add({severity: 'error', summary: 'Error', detail: 'No app found'});
@@ -119,7 +119,7 @@ export class EditAppComponent {
         form.reset();
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'App edited successfully' });
         this.disableButton = false;
-        window.location.reload();
+        await this.router.navigate([`app/${this.app.id}`]);
       } catch(err){
         console.log("Error creating app:" + err);
         this.messageService.add({severity: 'error', summary: 'Error', detail: 'Error creating app'});
@@ -128,7 +128,7 @@ export class EditAppComponent {
     }
   }
 
-  async fillForm(id: number): Promise<void> {
+  async fillForm(): Promise<void> {
     this.appForm.patchValue({
       name: this.app.name,
       description: this.app.description,

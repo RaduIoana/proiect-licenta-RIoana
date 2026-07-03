@@ -5,12 +5,12 @@ import {environment} from '../environments/environment';
 
 export interface PaymentRecord {
   id: number;
-  appId: string;
+  appId: number;
   paymentDT: string;
   paymentType: number;
   paymentAmount: number;
   paymentStatus: string;
-  canRefund?: boolean;
+  canRefund: boolean;
 }
 
 @Injectable({
@@ -23,5 +23,10 @@ export class PaymentRecordsService {
   getUserPaymentHistory(): Observable<PaymentRecord[]> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
     return this.http.get<PaymentRecord[]>(`${environment.apiUrl}/api/PaymentRecords/get_payRecords/user`, {headers});
+  }
+
+  getAllPayments(): Observable<PaymentRecord[]> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${sessionStorage.getItem('accessToken')}`);
+    return this.http.get<PaymentRecord[]>(`${environment.apiUrl}/api/PaymentRecords/get_payRecords`, {headers});
   }
 }

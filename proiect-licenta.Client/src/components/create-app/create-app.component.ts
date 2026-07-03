@@ -8,6 +8,7 @@ import {InputText} from 'primeng/inputtext';
 import {CategoriesService, Category} from '../../services/categories.service';
 import {MultiSelect} from 'primeng/multiselect';
 import {FileUpload} from 'primeng/fileupload';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-create-app',
@@ -35,7 +36,7 @@ export class CreateAppComponent {
   screenshots: File[] = [];
   exe: File | null = null;
 
-  constructor(private fb: FormBuilder, private appService: AppsService,
+  constructor(private fb: FormBuilder, private appService: AppsService, private router: Router,
               private messageService: MessageService, private categoryService: CategoriesService) {
     this.categoryService.getAllCategories().subscribe({
       next: (data) => {
@@ -99,7 +100,7 @@ export class CreateAppComponent {
         form.reset();
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'App added successfully' });
         this.disableButton = false;
-        //window.location.reload();
+        await this.router.navigate([`app/${id}`]);
       } catch(err){
         console.log("Error creating app:" + err);
         this.messageService.add({severity: 'error', summary: 'Error', detail: 'Error creating app'});
